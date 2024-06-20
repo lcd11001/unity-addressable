@@ -579,6 +579,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2da0277d45d33394b92413bb007514ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  refCube:
+    m_AssetGUID: bccf681b6ce5c574da9545c696fecd45
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  refLogo:
+    m_AssetGUID: 5e080773fdd46f1428e367130a2deffc
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  refClip:
+    m_AssetGUID: c32862a1860aafa41b845fa5fc16a6f2
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  imageLogo: {fileID: 916203865}
 --- !u!4 &1579193824
 Transform:
   m_ObjectHideFlags: 0
