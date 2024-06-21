@@ -63,3 +63,6 @@ crashlytics-build.properties
 
 .vscode/
 *.vsconfig
+ServerData/
+Assets/Smart Console/
+Assets/Smart Console.meta
