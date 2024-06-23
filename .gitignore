@@ -66,3 +66,7 @@ crashlytics-build.properties
 ServerData/
 Assets/Smart Console/
 Assets/Smart Console.meta
+Assets/Resources/google-services.json
+Assets/Resources/google-services.json.meta
+Assets/StreamingAssets/google-services-desktop.json
+Assets/StreamingAssets/google-services-desktop.json.meta
