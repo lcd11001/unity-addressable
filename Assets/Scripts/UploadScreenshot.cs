@@ -20,7 +20,9 @@ public class UploadScreenshot : MonoBehaviour
 
         var metadata = new MetadataChange();
         metadata.ContentType = "image/png";
-        metadata.CustomMetadata["timestamp"] = DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss");
+        metadata.CustomMetadata = new Dictionary<string, string>(){
+            {"timestamp", DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss")}
+        };
 
         var handler = new UploadScreenshotHandler();
 
