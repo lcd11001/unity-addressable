@@ -28,12 +28,18 @@ public class MaterialCube : MonoBehaviour
             randomIndex = Random.Range(0, material.Length);
         };
         meshRenderer.material = material[randomIndex];
+        Debug.Log($"{GetInstanceID()} Material changed from {index} to {randomIndex}");
         index = randomIndex;
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
+        {
+            RandomMaterial();
+        }
+
+        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
         {
             RandomMaterial();
         }
