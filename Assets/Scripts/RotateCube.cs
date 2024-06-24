@@ -11,4 +11,9 @@ public class RotateCube : MonoBehaviour
     {
         transform.rotation *= Quaternion.AngleAxis(speed * Time.deltaTime, axis);
     }
+
+    public void SetSpeed(float newSpeed)
+    {
+        speed = newSpeed;
+    }
 }

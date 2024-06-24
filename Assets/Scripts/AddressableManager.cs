@@ -19,7 +19,16 @@ public class AddressableManager : MonoBehaviour
     private AssetReferenceAudioClip refClip;
 
     [SerializeField]
+    private AssetReferenceRotateCube refRotateCube;
+
+    [SerializeField]
     private RawImage imageLogo;
+
+    [SerializeField]
+    private Vector3 cubePosition = new Vector3(0, 0, 0);
+
+    [SerializeField]
+    private float cubeRotationSpeed = 1.0f;
 
     private void Start()
     {
@@ -39,6 +48,9 @@ public class AddressableManager : MonoBehaviour
             refLogo.LoadAssetAsync<Texture2D>().Completed += OnLogoLoaded;
             refClip.LoadAssetAsync<AudioClip>().Completed += OnClipLoaded;
 
+            refRotateCube.InstantiateAsync(cubePosition, Quaternion.identity).Completed += OnRotateCubeLoaded;
+
+
             // AddressablesUtility.GetAddressFromAssetReference(refCube, (result) =>
             // {
             //     Debug.Log($"Address of refCube: {result}");
@@ -47,6 +59,16 @@ public class AddressableManager : MonoBehaviour
         else
         {
             Debug.LogError("Addressables failed to initialize");
+        }
+    }
+
+    private void OnRotateCubeLoaded(AsyncOperationHandle<RotateCube> handle)
+    {
+        DebugHandle(handle);
+
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            handle.Result.SetSpeed(cubeRotationSpeed);
         }
     }
 
@@ -63,6 +85,10 @@ public class AddressableManager : MonoBehaviour
         if (refClip.IsValid())
         {
             refClip.ReleaseAsset();
+        }
+        if (refRotateCube.IsValid())
+        {
+            refRotateCube.ReleaseAsset();
         }
     }
 
