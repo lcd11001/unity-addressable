@@ -7,6 +7,7 @@ using UnityEngine.EventSystems;
 
 public class CaptureScreenshot : MonoBehaviour, IPointerClickHandler
 {
+    public Canvas canvas;
     public ScreenshotEvent OnScreenshotTaken;
 
     public void OnPointerClick(PointerEventData eventData)
@@ -17,8 +18,12 @@ public class CaptureScreenshot : MonoBehaviour, IPointerClickHandler
 
     private IEnumerator TakeScreenshot()
     {
+        // Hide UI
+        canvas.enabled = false;
         yield return new WaitForEndOfFrame();
         var screenshot = ScreenCapture.CaptureScreenshotAsTexture();
+        // Show UI
+        canvas.enabled = true;
         OnScreenshotTaken?.Invoke(screenshot);
     }
 }
