@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 
@@ -22,16 +23,47 @@ public class AddressableManager : MonoBehaviour
 
     private void Start()
     {
-        refCube.LoadAssetAsync<GameObject>().Completed += OnCubeLoaded;
-        refLogo.LoadAssetAsync<Texture2D>().Completed += OnLogoLoaded;
-        refClip.LoadAssetAsync<AudioClip>().Completed += OnClipLoaded;
+        Addressables.InitializeAsync().Completed += OnAddressablesInitialized;
+
+        // refCube.LoadAssetAsync<GameObject>().Completed += OnCubeLoaded;
+        // refLogo.LoadAssetAsync<Texture2D>().Completed += OnLogoLoaded;
+        // refClip.LoadAssetAsync<AudioClip>().Completed += OnClipLoaded;
+    }
+
+    private void OnAddressablesInitialized(AsyncOperationHandle<IResourceLocator> handle)
+    {
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            Debug.Log("Addressables initialized successfully");
+            refCube.LoadAssetAsync<GameObject>().Completed += OnCubeLoaded;
+            refLogo.LoadAssetAsync<Texture2D>().Completed += OnLogoLoaded;
+            refClip.LoadAssetAsync<AudioClip>().Completed += OnClipLoaded;
+
+            // AddressablesUtility.GetAddressFromAssetReference(refCube, (result) =>
+            // {
+            //     Debug.Log($"Address of refCube: {result}");
+            // });
+        }
+        else
+        {
+            Debug.LogError("Addressables failed to initialize");
+        }
     }
 
     private void OnDestroy()
     {
-        refCube.ReleaseAsset();
-        refLogo.ReleaseAsset();
-        refClip.ReleaseAsset();
+        if (refCube.IsValid())
+        {
+            refCube.ReleaseAsset();
+        }
+        if (refLogo.IsValid())
+        {
+            refLogo.ReleaseAsset();
+        }
+        if (refClip.IsValid())
+        {
+            refClip.ReleaseAsset();
+        }
     }
 
     private static void DebugHandle<TObject>(AsyncOperationHandle<TObject> handle)
