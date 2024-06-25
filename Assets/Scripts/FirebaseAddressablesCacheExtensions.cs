@@ -9,8 +9,7 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace RobinBird.FirebaseTools.Storage.Addressables
 {
-    // compare this snippet with FirebaseAddressablesCache.cs then copy and paste it to overwrite of FirebaseAddressablesCache.cs
-    public static partial class FirebaseAddressablesCacheExtensions
+    public static class FirebaseAddressablesCacheExtensions
     {
         private static readonly Dictionary<string, string> originalStorageUrl = new Dictionary<string, string>();
 
