@@ -34,12 +34,12 @@ MonoBehaviour:
   m_RedirectLimit: -1
   m_RetryCount: 0
   m_BuildPath:
-    m_Id: bd8be305c22f97542add12dfcd6da2b0
+    m_Id: a84ef48d26ee12b4ba9dcaf490c46eab
   m_LoadPath:
-    m_Id: 06e1bb0b593e55043aaf87a26496228f
+    m_Id: b04a765800d0e3740bb2a7737a96e94a
   m_BundleMode: 0
   m_AssetBundleProviderType:
-    m_AssemblyName: Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    m_ClassName: UnityEngine.ResourceManagement.ResourceProviders.AssetBundleProvider
+    m_AssemblyName: RobinBird.FirebaseTools, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_ClassName: RobinBird.FirebaseTools.Storage.Addressables.FirebaseStorageAssetBundleProvider
   m_BundleNaming: 0
   m_AssetLoadMode: 0

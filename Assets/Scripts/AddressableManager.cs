@@ -1,9 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using RobinBird.FirebaseTools.Storage.Addressables;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
+using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 
@@ -32,11 +35,35 @@ public class AddressableManager : MonoBehaviour
 
     private void Start()
     {
-        Addressables.InitializeAsync().Completed += OnAddressablesInitialized;
+        Caching.ClearCache();
+
+        // Hook Firebase
+        Addressables.ResourceManager.ResourceProviders.Add(new FirebaseStorageAssetBundleProvider());
+        Addressables.ResourceManager.ResourceProviders.Add(new FirebaseStorageJsonAssetProvider());
+        Addressables.ResourceManager.ResourceProviders.Add(new FirebaseStorageHashProvider());
+
+        Addressables.InternalIdTransformFunc += FirebaseAddressablesCache.IdTransformFunc;
+        Addressables.WebRequestOverride += GetWebRequest;
+
+
+        FirebaseAddressablesManager.LogLevel = Firebase.LogLevel.Verbose;
+        FirebaseAddressablesManager.FirebaseSetupFinished += InitAddressable;
+
+        // MUST be called after Firebase is initialized
+        //Addressables.InitializeAsync().Completed += OnAddressablesInitialized;
 
         // refCube.LoadAssetAsync<GameObject>().Completed += OnCubeLoaded;
         // refLogo.LoadAssetAsync<Texture2D>().Completed += OnLogoLoaded;
         // refClip.LoadAssetAsync<AudioClip>().Completed += OnClipLoaded;
+    }
+
+    public static void GetWebRequest(UnityWebRequest request)
+    {
+        Debug.Log($"Requesting {request.url}");
+
+        var originalUrl = FirebaseAddressablesCache.GetOriginalStorageUrl(request.url);
+        Debug.Log($"Original URL: {originalUrl}");
+        request.url = originalUrl; // Replace the URL with the original URL
     }
 
     private void OnAddressablesInitialized(AsyncOperationHandle<IResourceLocator> handle)
@@ -44,6 +71,7 @@ public class AddressableManager : MonoBehaviour
         if (handle.Status == AsyncOperationStatus.Succeeded)
         {
             Debug.Log("Addressables initialized successfully");
+
             refCube.LoadAssetAsync<GameObject>().Completed += OnCubeLoaded;
             refLogo.LoadAssetAsync<Texture2D>().Completed += OnLogoLoaded;
             refClip.LoadAssetAsync<AudioClip>().Completed += OnClipLoaded;
@@ -51,10 +79,10 @@ public class AddressableManager : MonoBehaviour
             refRotateCube.InstantiateAsync(cubePosition, Quaternion.identity).Completed += OnRotateCubeLoaded;
 
 
-            // AddressablesUtility.GetAddressFromAssetReference(refCube, (result) =>
-            // {
-            //     Debug.Log($"Address of refCube: {result}");
-            // });
+            AddressablesUtility.GetAddressFromAssetReference(refCube, (result) =>
+            {
+                Debug.Log($"Address of refCube: {result}");
+            });
         }
         else
         {
@@ -127,5 +155,16 @@ public class AddressableManager : MonoBehaviour
         {
             Instantiate(handle.Result);
         }
+    }
+
+    public void OnFirebaseInitialized()
+    {
+        Debug.Log("Firebase initialized");
+        FirebaseAddressablesManager.IsFirebaseSetupFinished = true;
+    }
+
+    public void InitAddressable()
+    {
+        Addressables.InitializeAsync().Completed += OnAddressablesInitialized;
     }
 }

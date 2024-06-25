@@ -156,6 +156,15 @@
       },
       "url": "https://packages.unity.com"
     },
+    "robinbird.firebasetools": {
+      "version": "https://gitlab.com/robinbird-studios/libraries/unity-plugins/firebase-tools.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.addressables": "1.7.5"
+      },
+      "hash": "ac3a1334fef087fc594727d0442373eb4b4e8766"
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,

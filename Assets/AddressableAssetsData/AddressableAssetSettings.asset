@@ -17,7 +17,7 @@ MonoBehaviour:
     serializedVersion: 2
     Hash: 00000000000000000000000000000000
   m_OptimizeCatalogSize: 0
-  m_BuildRemoteCatalog: 0
+  m_BuildRemoteCatalog: 1
   m_BundleLocalCatalog: 0
   m_CatalogRequestsTimeout: 0
   m_DisableCatalogUpdateOnStart: 0
@@ -66,7 +66,7 @@ MonoBehaviour:
       - m_Id: a84ef48d26ee12b4ba9dcaf490c46eab
         m_Value: ServerData/[BuildTarget]
       - m_Id: b04a765800d0e3740bb2a7737a96e94a
-        m_Value: http://[PrivateIpAddress]:[HostingServicePort]
+        m_Value: gs://unity-firebase-demo-924f5.appspot.com/TestAddressable/[BuildTarget]
     m_ProfileEntryNames:
     - m_Id: c88dce9fa0add284c95bbf3c3bee8772
       m_Name: BuildTarget
@@ -94,16 +94,18 @@ MonoBehaviour:
   m_CertificateHandlerType:
     m_AssemblyName: 
     m_ClassName: 
-  m_ActivePlayerDataBuilderIndex: 3
+  m_ActivePlayerDataBuilderIndex: 4
   m_DataBuilders:
   - {fileID: 11400000, guid: bdd890534a91a544da609add0e25bdd2, type: 2}
   - {fileID: 11400000, guid: 25f514c04bcbab140b2cc142ebdadec3, type: 2}
   - {fileID: 11400000, guid: c21781650e6740e4da93b9f344164e9d, type: 2}
   - {fileID: 11400000, guid: 8aa65848a197a4f48a57c9dd865735aa, type: 2}
+  - {fileID: 11400000, guid: 9beb76ed53d3ef84b99f4ab584a6b13a, type: 2}
   m_ActiveProfileId: 121738ef896195f4aa37b9bd70c846df
   m_HostingServicesManager:
     m_HostingServiceInfos: []
     m_Settings: {fileID: 11400000}
     m_NextInstanceId: 0
-    m_RegisteredServiceTypeRefs: []
+    m_RegisteredServiceTypeRefs:
+    - UnityEditor.AddressableAssets.HostingServices.HttpHostingService, Unity.Addressables.Editor
     m_PingTimeoutInMilliseconds: 5000
