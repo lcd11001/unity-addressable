@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Firebase.Storage;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -10,6 +11,7 @@ namespace RobinBird.FirebaseTools.Storage.Addressables
     public static class FirebaseAddressablesCacheExtensions
     {
         private static readonly Dictionary<string, string> originalStorageUrl = new Dictionary<string, string>();
+        private static int runningFetchUrlOperationCount;
 
         public static void GetWebRequestFunc(UnityWebRequest request)
         {
@@ -32,9 +34,11 @@ namespace RobinBird.FirebaseTools.Storage.Addressables
 
         public static void GetFirebaseUrl(string gsUrl)
         {
+            runningFetchUrlOperationCount++;
             StorageReference reference = FirebaseStorage.DefaultInstance.GetReferenceFromUrl(gsUrl);
             reference.GetDownloadUrlAsync().ContinueWith(task =>
             {
+                runningFetchUrlOperationCount--;
                 if (task.IsCanceled || task.IsFaulted)
                 {
                     Debug.LogError($"Could not get url for: {gsUrl}, {task.Exception}");
@@ -50,6 +54,12 @@ namespace RobinBird.FirebaseTools.Storage.Addressables
 
         public static string GetOriginalStorageUrl(string storageUrl)
         {
+            if (runningFetchUrlOperationCount > 0)
+            {
+                Debug.LogWarning("Wait until the previous operation is completed before starting a new one");
+                Thread.Sleep(100);
+            }
+
             if (originalStorageUrl.TryGetValue(storageUrl, out string originalUrl))
             {
                 return originalUrl;
