@@ -35,6 +35,7 @@ public class AddressableManager : MonoBehaviour
 
     private void Start()
     {
+        // For development purpose, clear cache
         Caching.ClearCache();
 
         // Hook Firebase

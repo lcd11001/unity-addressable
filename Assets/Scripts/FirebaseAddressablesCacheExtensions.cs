@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Firebase.Extensions;
 using Firebase.Storage;
 using UnityEngine;
-using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.ResourceLocations;
 
