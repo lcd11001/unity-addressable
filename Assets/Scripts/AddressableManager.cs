@@ -42,11 +42,12 @@ public class AddressableManager : MonoBehaviour
         Addressables.ResourceManager.ResourceProviders.Add(new FirebaseStorageJsonAssetProvider());
         Addressables.ResourceManager.ResourceProviders.Add(new FirebaseStorageHashProvider());
 
-        Addressables.InternalIdTransformFunc += FirebaseAddressablesCache.IdTransformFunc;
-        Addressables.WebRequestOverride += GetWebRequest;
+        //Addressables.InternalIdTransformFunc += FirebaseAddressablesCache.IdTransformFunc;
+        Addressables.InternalIdTransformFunc += FirebaseAddressablesCacheExtensions.IdTransformFunc;
+        Addressables.WebRequestOverride += FirebaseAddressablesCacheExtensions.GetWebRequestFunc;
 
-
-        FirebaseAddressablesManager.LogLevel = Firebase.LogLevel.Verbose;
+        // Uncomment this line to see more logs
+        //FirebaseAddressablesManager.LogLevel = Firebase.LogLevel.Verbose;
         FirebaseAddressablesManager.FirebaseSetupFinished += InitAddressable;
 
         // MUST be called after Firebase is initialized
@@ -55,15 +56,6 @@ public class AddressableManager : MonoBehaviour
         // refCube.LoadAssetAsync<GameObject>().Completed += OnCubeLoaded;
         // refLogo.LoadAssetAsync<Texture2D>().Completed += OnLogoLoaded;
         // refClip.LoadAssetAsync<AudioClip>().Completed += OnClipLoaded;
-    }
-
-    public static void GetWebRequest(UnityWebRequest request)
-    {
-        Debug.Log($"Requesting {request.url}");
-
-        var originalUrl = FirebaseAddressablesCache.GetOriginalStorageUrl(request.url);
-        Debug.Log($"Original URL: {originalUrl}");
-        request.url = originalUrl; // Replace the URL with the original URL
     }
 
     private void OnAddressablesInitialized(AsyncOperationHandle<IResourceLocator> handle)
