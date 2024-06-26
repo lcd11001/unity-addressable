@@ -33,6 +33,8 @@ public class AddressableManager : MonoBehaviour
     [SerializeField]
     private float cubeRotationSpeed = 1.0f;
 
+    private Dictionary<string, float> downloadProgression = new Dictionary<string, float>();
+
     private void Start()
     {
         // For development purpose, clear cache
@@ -57,6 +59,70 @@ public class AddressableManager : MonoBehaviour
         // refCube.LoadAssetAsync<GameObject>().Completed += OnCubeLoaded;
         // refLogo.LoadAssetAsync<Texture2D>().Completed += OnLogoLoaded;
         // refClip.LoadAssetAsync<AudioClip>().Completed += OnClipLoaded;
+
+        /*
+        FirebaseAddressablesCache.PreWarmDependencies(refCube.RuntimeKey, () =>
+        {
+            var handler = Addressables.GetDownloadSizeAsync(refCube.RuntimeKey);
+            handler.Completed += (handle) =>
+            {
+                if (handle.Status == AsyncOperationStatus.Succeeded)
+                {
+                    Debug.Log($"Size of cube: {handle.Result}");
+                }
+                else
+                {
+                    Debug.LogError($"Failed to get size of cube: {handle.DebugName} due to {handle.OperationException}");
+                }
+            };
+        });
+        */
+    }
+
+    //private void Update()
+    //{
+    //    if (downloadProgression.Count > 0)
+    //    {
+    //        Debug.Log($"Total progress: {CalculateTotalProgress()}");
+    //    }
+    //}
+
+    private float CalculateTotalProgress()
+    {
+        float totalProgress = 0.0f;
+        foreach (var item in downloadProgression)
+        {
+            totalProgress += item.Value;
+        }
+        return totalProgress / downloadProgression.Count;
+    }
+
+    private IEnumerator TotalProgress()
+    {
+        float progress = 0.0f;
+        while (progress < 1.0f)
+        {
+            Debug.Log($"Total progress: {progress}");
+            progress = CalculateTotalProgress();
+            yield return null;
+        }
+        Debug.Log($"Total progress: {progress}");
+    }
+
+
+    private IEnumerator DownloadStatus<T>(AsyncOperationHandle<T> handle)
+    {
+        downloadProgression.Add(handle.DebugName, 0.0f);
+
+        while (!handle.IsDone)
+        {
+            //Debug.Log($"{handle.DebugName}: {handle.PercentComplete}");
+            downloadProgression[handle.DebugName] = handle.PercentComplete;
+            yield return null;
+        }
+
+        downloadProgression[handle.DebugName] = 1.0f;
+        //Debug.Log($"{handle.DebugName} is downloaded completed.");
     }
 
     private void OnAddressablesInitialized(AsyncOperationHandle<IResourceLocator> handle)
@@ -65,12 +131,23 @@ public class AddressableManager : MonoBehaviour
         {
             Debug.Log("Addressables initialized successfully");
 
-            refCube.LoadAssetAsync<GameObject>().Completed += OnCubeLoaded;
-            refLogo.LoadAssetAsync<Texture2D>().Completed += OnLogoLoaded;
-            refClip.LoadAssetAsync<AudioClip>().Completed += OnClipLoaded;
+            var handleCube = refCube.LoadAssetAsync<GameObject>();
+            handleCube.Completed += OnCubeLoaded;
+            StartCoroutine(DownloadStatus(handleCube));
 
-            refRotateCube.InstantiateAsync(cubePosition, Quaternion.identity).Completed += OnRotateCubeLoaded;
+            var handleLogo = refLogo.LoadAssetAsync<Texture2D>();
+            handleLogo.Completed += OnLogoLoaded;
+            StartCoroutine(DownloadStatus(handleLogo));
 
+            var handleClip = refClip.LoadAssetAsync<AudioClip>();
+            handleClip.Completed += OnClipLoaded;
+            StartCoroutine(DownloadStatus(handleClip));
+
+            var handleRotateCube = refRotateCube.InstantiateAsync(cubePosition, Quaternion.identity);
+            handleRotateCube.Completed += OnRotateCubeLoaded;
+            StartCoroutine(DownloadStatus(handleRotateCube));
+
+            StartCoroutine(TotalProgress());
 
             AddressablesUtility.GetAddressFromAssetReference(refCube, (result) =>
             {
