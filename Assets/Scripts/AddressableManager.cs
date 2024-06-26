@@ -43,6 +43,7 @@ public class AddressableManager : MonoBehaviour
     private void Start()
     {
         HideSlider();
+        imageLogo.gameObject.SetActive(false);
 
         // For development purpose, clear cache
         Caching.ClearCache();
@@ -265,8 +266,20 @@ public class AddressableManager : MonoBehaviour
 
         if (handle.Status == AsyncOperationStatus.Succeeded)
         {
-            handle.Result.SetSpeed(cubeRotationSpeed);
+            // handle.Result.SetSpeed(cubeRotationSpeed);
+            StartCoroutine(ShowRotateCube(handle.Result));
         }
+    }
+
+    private IEnumerator ShowRotateCube(RotateCube cube)
+    {
+        cube.gameObject.SetActive(false);
+        while (AllDownloadsCompleted() == false)
+        {
+            yield return null;
+        }
+        cube.gameObject.SetActive(true);
+        cube.SetSpeed(cubeRotationSpeed);
     }
 
     private void OnDestroy()
@@ -304,8 +317,23 @@ public class AddressableManager : MonoBehaviour
             audio.clip = handle.Result;
             audio.loop = true;
             audio.playOnAwake = false;
-            audio.Play();
+
+            StartCoroutine(PlayMusic(audio));
+            // audio.Play();
         }
+    }
+
+    private IEnumerator PlayMusic(AudioSource audio)
+    {
+        while (AllDownloadsCompleted() == false)
+        {
+            yield return null;
+        }
+        if (audio.clip.loadState == AudioDataLoadState.Loading)
+        {
+            yield return new WaitUntil(() => audio.clip.loadState == AudioDataLoadState.Loaded);
+        }
+        audio.Play();
     }
 
     private void OnLogoLoaded(AsyncOperationHandle<Texture2D> handle)
@@ -313,8 +341,19 @@ public class AddressableManager : MonoBehaviour
         DebugHandle(handle);
         if (handle.Status == AsyncOperationStatus.Succeeded)
         {
-            imageLogo.texture = handle.Result;
+            // imageLogo.texture = handle.Result;
+            StartCoroutine(ShowLogo(handle.Result));
         }
+    }
+
+    private IEnumerator ShowLogo(Texture2D texture)
+    {
+        while (AllDownloadsCompleted() == false)
+        {
+            yield return null;
+        }
+        imageLogo.texture = texture;
+        imageLogo.gameObject.SetActive(true);
     }
 
     private void OnCubeLoaded(AsyncOperationHandle<GameObject> handle)
@@ -322,8 +361,18 @@ public class AddressableManager : MonoBehaviour
         DebugHandle(handle);
         if (handle.Status == AsyncOperationStatus.Succeeded)
         {
-            Instantiate(handle.Result);
+            // Instantiate(handle.Result);
+            StartCoroutine(ShowCube(handle.Result));
         }
+    }
+
+    private IEnumerator ShowCube(GameObject prefab)
+    {
+        while (AllDownloadsCompleted() == false)
+        {
+            yield return null;
+        }
+        Instantiate(prefab);
     }
 
     public void OnFirebaseInitialized()
