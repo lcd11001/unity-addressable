@@ -112,7 +112,10 @@ public class AddressableManager : MonoBehaviour
 
     private IEnumerator DownloadStatus<T>(AsyncOperationHandle<T> handle)
     {
-        downloadProgression.Add(handle.DebugName, 0.0f);
+        if (downloadProgression.ContainsKey(handle.DebugName) == false)
+        {
+            downloadProgression.Add(handle.DebugName, 0.0f);
+        }
 
         while (!handle.IsDone)
         {
