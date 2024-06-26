@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using RobinBird.FirebaseTools.Storage.Addressables;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
@@ -33,10 +34,16 @@ public class AddressableManager : MonoBehaviour
     [SerializeField]
     private float cubeRotationSpeed = 1.0f;
 
+    [SerializeField]
+    private Slider sliderProgress;
+
     private Dictionary<string, float> downloadProgression = new Dictionary<string, float>();
+    private Coroutine smothSlider = null;
 
     private void Start()
     {
+        HideSlider();
+
         // For development purpose, clear cache
         Caching.ClearCache();
 
@@ -97,16 +104,105 @@ public class AddressableManager : MonoBehaviour
         return totalProgress / downloadProgression.Count;
     }
 
-    private IEnumerator TotalProgress()
+    private bool AllDownloadsCompleted()
     {
-        float progress = 0.0f;
-        while (progress < 1.0f)
+        foreach (var item in downloadProgression)
         {
-            Debug.Log($"Total progress: {progress}");
-            progress = CalculateTotalProgress();
+            if (item.Value < 1.0f) return false;
+        }
+        return true;
+    }
+
+    private void ShowSlider(float initValue = -1.0f)
+    {
+        if (sliderProgress != null)
+        {
+            if (initValue >= 0.0f)
+            {
+                sliderProgress.value = initValue;
+            }
+
+            if (sliderProgress.transform.parent != null)
+            {
+                sliderProgress.transform.parent.gameObject.SetActive(true);
+            }
+            else
+            {
+                sliderProgress.gameObject.SetActive(true);
+            }
+        }
+    }
+
+    private void HideSlider(float initValue = -1.0f)
+    {
+        if (sliderProgress != null)
+        {
+            if (initValue >= 0.0f)
+            {
+                sliderProgress.value = initValue;
+            }
+
+            if (sliderProgress.transform.parent != null)
+            {
+                sliderProgress.transform.parent.gameObject.SetActive(false);
+            }
+            else
+            {
+                sliderProgress.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    private void UpdateSlider(float value)
+    {
+        if (sliderProgress != null)
+        {
+            //sliderProgress.value = value;
+            if (value > sliderProgress.value && smothSlider != null)
+            {
+                StopCoroutine(smothSlider);
+            }
+            smothSlider = StartCoroutine(SmoothSliderUpdate(value));
+        }
+    }
+
+    private IEnumerator SmoothSliderUpdate(float targetValue)
+    {
+        float currentValue = sliderProgress.value;
+        float elapsedTime = 0f;
+        float duration = 0.5f; // Duration in seconds over which the slider value changes
+
+        while (elapsedTime < duration)
+        {
+            sliderProgress.value = Mathf.Lerp(currentValue, targetValue, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
             yield return null;
         }
-        Debug.Log($"Total progress: {progress}");
+
+        sliderProgress.value = targetValue; // Ensure the target value is set
+    }
+
+    private IEnumerator TotalProgress()
+    {
+        ShowSlider(0.0f);
+
+        while (!AllDownloadsCompleted())
+        {
+            float progress = CalculateTotalProgress();
+            Debug.Log($"Total progress: {progress}");
+            UpdateSlider(progress);
+
+            yield return null;
+        }
+
+        if (smothSlider != null)
+        {
+            UpdateSlider(1.0f);
+            yield return new WaitUntil(() => sliderProgress.value == 1.0f);
+        }
+
+        Debug.Log("All downloads completed.");
+        HideSlider(1.0f);
     }
 
 
