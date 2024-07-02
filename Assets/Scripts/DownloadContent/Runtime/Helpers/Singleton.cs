@@ -44,22 +44,5 @@ namespace DownloadContent.Helpers
                 throw new Exception($"Please use {typeof(T).Name}.Instance instead of new() operator");
             }
         }
-
-#if UNITY_EDITOR
-        [InitializeOnLoadMethod]
-        static void RegisterPlayModeStateChange()
-        {
-            EditorApplication.playModeStateChanged += SetInstanceReInitFlagOnExitPlayMode;
-        }
-
-        static void SetInstanceReInitFlagOnExitPlayMode(PlayModeStateChange change)
-        {
-            if (change == PlayModeStateChange.EnteredEditMode || change == PlayModeStateChange.ExitingPlayMode)
-            {
-                reinitializeInstance = true;
-            }
-        }
-
-#endif
     }
 }
