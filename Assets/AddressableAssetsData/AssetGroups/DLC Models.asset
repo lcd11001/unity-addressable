@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: DLC Models
+  m_EditorClassIdentifier: 
+  m_GroupName: DLC Models
+  m_Data:
+    m_SerializedData: []
+  m_GUID: c579a827814b08243abc833f80749ad7
+  m_SerializeEntries:
+  - m_GUID: bccf681b6ce5c574da9545c696fecd45
+    m_Address: Assets/Prefabs/Cube.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5e080773fdd46f1428e367130a2deffc
+    m_Address: Assets/Sprites/BJ_512.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c32862a1860aafa41b845fa5fc16a6f2
+    m_Address: Assets/Sounds/bg.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: f66c700e29e5a2e4c965f72b58a3328d, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 8a824e4bf3531984bae1663193181fd3, type: 2}
+    - {fileID: 11400000, guid: 2dce3f6234351a546baf7076109c8ea6, type: 2}

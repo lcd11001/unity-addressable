@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DownloadContent;
 using RobinBird.FirebaseTools.Storage.Addressables;
 using Unity.VisualScripting;
 using UnityEditor;
@@ -48,6 +49,7 @@ public class AddressableManager : MonoBehaviour
         // For development purpose, clear cache
         Caching.ClearCache();
 
+#if ADDRESSABLE_FIREBASE_STORAGE
         // Hook Firebase
         Addressables.ResourceManager.ResourceProviders.Add(new FirebaseStorageAssetBundleProvider());
         Addressables.ResourceManager.ResourceProviders.Add(new FirebaseStorageJsonAssetProvider());
@@ -60,13 +62,6 @@ public class AddressableManager : MonoBehaviour
         // Uncomment this line to see more logs
         //FirebaseAddressablesManager.LogLevel = Firebase.LogLevel.Verbose;
         FirebaseAddressablesManager.FirebaseSetupFinished += InitAddressable;
-
-        // MUST be called after Firebase is initialized
-        //Addressables.InitializeAsync().Completed += OnAddressablesInitialized;
-
-        // refCube.LoadAssetAsync<GameObject>().Completed += OnCubeLoaded;
-        // refLogo.LoadAssetAsync<Texture2D>().Completed += OnLogoLoaded;
-        // refClip.LoadAssetAsync<AudioClip>().Completed += OnClipLoaded;
 
         /*
         FirebaseAddressablesCache.PreWarmDependencies(refCube.RuntimeKey, () =>
@@ -85,6 +80,15 @@ public class AddressableManager : MonoBehaviour
             };
         });
         */
+#else
+        DownloadContentManager.Instance.OnInitialized += InitAddressable;
+        DownloadContentManager.Instance.Initialize();
+        // InitAddressable();
+
+        // refCube.LoadAssetAsync<GameObject>().Completed += OnCubeLoaded;
+        // refLogo.LoadAssetAsync<Texture2D>().Completed += OnLogoLoaded;
+        // refClip.LoadAssetAsync<AudioClip>().Completed += OnClipLoaded;
+#endif
     }
 
     //private void Update()
@@ -190,7 +194,7 @@ public class AddressableManager : MonoBehaviour
         while (!AllDownloadsCompleted())
         {
             float progress = CalculateTotalProgress();
-            Debug.Log($"Total progress: {progress}");
+            // Debug.Log($"Total progress: {progress}");
             UpdateSlider(progress);
 
             yield return null;
@@ -202,7 +206,7 @@ public class AddressableManager : MonoBehaviour
             yield return new WaitUntil(() => sliderProgress.value == 1.0f);
         }
 
-        Debug.Log("All downloads completed.");
+        // Debug.Log("All downloads completed.");
         HideSlider(1.0f);
     }
 
@@ -378,7 +382,9 @@ public class AddressableManager : MonoBehaviour
     public void OnFirebaseInitialized()
     {
         Debug.Log("Firebase initialized");
+#if ADDRESSABLE_FIREBASE_STORAGE
         FirebaseAddressablesManager.IsFirebaseSetupFinished = true;
+#endif
     }
 
     public void InitAddressable()

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 468a46d0ae32c3544b7d98094e6448a9, type: 3}
   m_Name: AddressableAssetSettings
   m_EditorClassIdentifier: 
-  m_DefaultGroup: 141d7a41d7f734941a9b3a755b9026a4
+  m_DefaultGroup: 2df90d1643a4609408468c70f8afca47
   m_currentHash:
     serializedVersion: 2
     Hash: 00000000000000000000000000000000
@@ -35,9 +35,9 @@ MonoBehaviour:
   m_CheckForContentUpdateRestrictionsOption: 0
   m_MonoScriptBundleCustomNaming: 
   m_RemoteCatalogBuildPath:
-    m_Id: a84ef48d26ee12b4ba9dcaf490c46eab
+    m_Id: 8e2f6d24deffbd144a09fe2d5d8f907f
   m_RemoteCatalogLoadPath:
-    m_Id: b04a765800d0e3740bb2a7737a96e94a
+    m_Id: edbe5475cb4493440bbbb3b22fcdf0f1
   m_ContentStateBuildPathProfileVariableName: <default settings path>
   m_CustomContentStateBuildPath: 
   m_ContentStateBuildPath: 
@@ -46,6 +46,8 @@ MonoBehaviour:
   m_GroupAssets:
   - {fileID: 11400000, guid: 7582c80b047980b4888aae85f3426060, type: 2}
   - {fileID: 11400000, guid: 40e600259da60bf4281b68bae41b2402, type: 2}
+  - {fileID: 11400000, guid: d256469453f1eda469ee5925682d0c3a, type: 2}
+  - {fileID: 11400000, guid: 49989159c430e5247999067341690df9, type: 2}
   m_BuildSettings:
     m_CompileScriptsInVirtualMode: 0
     m_CleanupStreamingAssetsAfterBuilds: 1
@@ -67,6 +69,10 @@ MonoBehaviour:
         m_Value: ServerData/[BuildTarget]
       - m_Id: b04a765800d0e3740bb2a7737a96e94a
         m_Value: gs://unity-firebase-demo-924f5.appspot.com/TestAddressable/[BuildTarget]
+      - m_Id: 8e2f6d24deffbd144a09fe2d5d8f907f
+        m_Value: DLC/[BuildTarget]
+      - m_Id: edbe5475cb4493440bbbb3b22fcdf0f1
+        m_Value: dlc://[BuildTarget]
     m_ProfileEntryNames:
     - m_Id: c88dce9fa0add284c95bbf3c3bee8772
       m_Name: BuildTarget
@@ -83,6 +89,12 @@ MonoBehaviour:
     - m_Id: b04a765800d0e3740bb2a7737a96e94a
       m_Name: Remote.LoadPath
       m_InlineUsage: 0
+    - m_Id: 8e2f6d24deffbd144a09fe2d5d8f907f
+      m_Name: DLC.BuildPath
+      m_InlineUsage: 0
+    - m_Id: edbe5475cb4493440bbbb3b22fcdf0f1
+      m_Name: DLC.LoadPath
+      m_InlineUsage: 0
     m_ProfileVersion: 1
   m_LabelTable:
     m_LabelNames:
@@ -94,13 +106,14 @@ MonoBehaviour:
   m_CertificateHandlerType:
     m_AssemblyName: 
     m_ClassName: 
-  m_ActivePlayerDataBuilderIndex: 4
+  m_ActivePlayerDataBuilderIndex: 5
   m_DataBuilders:
   - {fileID: 11400000, guid: bdd890534a91a544da609add0e25bdd2, type: 2}
   - {fileID: 11400000, guid: 25f514c04bcbab140b2cc142ebdadec3, type: 2}
   - {fileID: 11400000, guid: c21781650e6740e4da93b9f344164e9d, type: 2}
   - {fileID: 11400000, guid: 8aa65848a197a4f48a57c9dd865735aa, type: 2}
   - {fileID: 11400000, guid: 9beb76ed53d3ef84b99f4ab584a6b13a, type: 2}
+  - {fileID: 11400000, guid: dce07be314c1bf14aa28577ae9ea44fe, type: 2}
   m_ActiveProfileId: 121738ef896195f4aa37b9bd70c846df
   m_HostingServicesManager:
     m_HostingServiceInfos: []
