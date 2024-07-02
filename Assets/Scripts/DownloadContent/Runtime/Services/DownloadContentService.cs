@@ -1,4 +1,3 @@
-using DownloadContent;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,7 +10,7 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 
 using Debug = UnityEngine.Debug;
 
-namespace DLC.Services
+namespace DownloadContent.Services
 {
     public class DownloadContentService
     {

@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
-  m_Name: DLC Models
+  m_Name: DLC
   m_EditorClassIdentifier: 
-  m_GroupName: DLC Models
+  m_GroupName: DLC
   m_Data:
     m_SerializedData: []
-  m_GUID: c579a827814b08243abc833f80749ad7
+  m_GUID: f7def4a524ab5e94887d3c9c60825687
   m_SerializeEntries:
   - m_GUID: bccf681b6ce5c574da9545c696fecd45
     m_Address: Assets/Prefabs/Cube.prefab
@@ -36,5 +36,5 @@ MonoBehaviour:
   m_Settings: {fileID: 11400000, guid: f66c700e29e5a2e4c965f72b58a3328d, type: 2}
   m_SchemaSet:
     m_Schemas:
-    - {fileID: 11400000, guid: 8a824e4bf3531984bae1663193181fd3, type: 2}
-    - {fileID: 11400000, guid: 2dce3f6234351a546baf7076109c8ea6, type: 2}
+    - {fileID: 11400000, guid: 8be1db0968cc2f14987e90efa5bcfc07, type: 2}
+    - {fileID: 11400000, guid: 74da548acf9601c4faaf34543e933218, type: 2}

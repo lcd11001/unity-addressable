@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace DownloadContent.Builders
 {
-    [CreateAssetMenu(fileName = "DownloadContentBuildScript", menuName = "DLC/Content Builders/DLC Build Script")]
+    [CreateAssetMenu(fileName = "DLCBuildScript", menuName = "DLC/Content Builders/DLC Build Script")]
     public class DownloadContentBuildScript : BuildScriptPackedMode
     {
         public override string Name => "DLC Build";

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace DLC.Contants
+namespace DownloadContent.Contants
 {
     public static class DownloadContentConstants
     {

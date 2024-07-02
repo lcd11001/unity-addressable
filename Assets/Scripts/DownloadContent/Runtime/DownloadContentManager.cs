@@ -1,7 +1,7 @@
-using DLC.Contants;
-using DLC.Services;
+using DownloadContent.Contants;
 using DownloadContent.Controllers;
 using DownloadContent.Helpers;
+using DownloadContent.Services;
 using System;
 using System.Collections;
 using System.Collections.Generic;
