@@ -5,6 +5,7 @@ using DownloadContent.Services;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -78,5 +79,22 @@ namespace DownloadContent
         {
             _controller.SetInternalIdToDlcUrl(remoteUrl, dlcUrl);
         }
+
+#if UNITY_EDITOR
+        [InitializeOnLoadMethod]
+        static void RegisterPlayModeStateChange()
+        {
+            EditorApplication.playModeStateChanged += SetInstanceReInitFlagOnExitPlayMode;
+        }
+
+        static void SetInstanceReInitFlagOnExitPlayMode(PlayModeStateChange change)
+        {
+            if (change == PlayModeStateChange.EnteredEditMode || change == PlayModeStateChange.ExitingPlayMode)
+            {
+                reinitializeInstance = true;
+            }
+        }
+
+#endif
     }
 }

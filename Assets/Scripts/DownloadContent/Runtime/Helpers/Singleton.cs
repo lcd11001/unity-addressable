@@ -1,14 +1,40 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.ResourceManagement.Util;
+
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditorInternal;
+#endif
 
 namespace DownloadContent.Helpers
 {
     public abstract class Singleton<T> where T : Singleton<T>, new()
     {
-        private static readonly Lazy<T> instance = new Lazy<T>(() => new T());
-        public static T Instance { get => instance.Value; }
+        protected static bool reinitializeInstance;
+        private static T instance;
+        public static T Instance
+        {
+            get
+            {
+#if UNITY_EDITOR
+                //if (InternalEditorUtility.CurrentThreadIsMainThread() && reinitializeAddressables && EditorSettings.enterPlayModeOptionsEnabled)
+                if (reinitializeInstance)
+                {
+                    Debug.Log($"Reinitializing {typeof(T).Name}");
+                    reinitializeInstance = false;
+                    instance = null;
+                    instantiated = false;
+                }
+#endif
+                if (instance == null)
+                {
+                    instance = new T();
+                    instantiated = true;
+                }
+                return instance;
+            }
+        }
 
         private static bool instantiated;
         protected Singleton()
@@ -17,7 +43,23 @@ namespace DownloadContent.Helpers
             {
                 throw new Exception($"Please use {typeof(T).Name}.Instance instead of new() operator");
             }
-            instantiated = true;
         }
+
+#if UNITY_EDITOR
+        [InitializeOnLoadMethod]
+        static void RegisterPlayModeStateChange()
+        {
+            EditorApplication.playModeStateChanged += SetInstanceReInitFlagOnExitPlayMode;
+        }
+
+        static void SetInstanceReInitFlagOnExitPlayMode(PlayModeStateChange change)
+        {
+            if (change == PlayModeStateChange.EnteredEditMode || change == PlayModeStateChange.ExitingPlayMode)
+            {
+                reinitializeInstance = true;
+            }
+        }
+
+#endif
     }
 }

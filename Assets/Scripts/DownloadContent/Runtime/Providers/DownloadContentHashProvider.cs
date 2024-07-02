@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,6 +14,21 @@ namespace DownloadContent.Providers
         public override void Provide(ProvideHandle provideHandle)
         {
             this.provideHandle = provideHandle;
+
+            if (DownloadContentManager.Instance.IsInitialized)
+            {
+                LoadManifest();
+            }
+            else
+            {
+                DownloadContentManager.Instance.OnInitialized += LoadManifest;
+            }
+        }
+
+        private void LoadManifest()
+        {
+            DownloadContentManager.Instance.OnInitialized -= LoadManifest;
+            Debug.Log($"LoadManifest: {provideHandle.Location.InternalId}");
         }
     }
 }
