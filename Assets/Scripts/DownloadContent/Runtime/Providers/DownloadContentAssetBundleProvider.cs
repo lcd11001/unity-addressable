@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using DownloadContent.Contants;
 using DownloadContent.Services;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
@@ -13,6 +15,7 @@ namespace DownloadContent.Providers
     [DisplayName("DLC AssetBundle Provider")]
     public class DownloadContentAssetBundleProvider : AssetBundleProvider
     {
+        protected readonly Dictionary<string, AsyncOperationHandle<IAssetBundleResource>> bundleOperationHandlers = new Dictionary<string, AsyncOperationHandle<IAssetBundleResource>>();
         private ProvideHandle provideHandle;
         public override void Provide(ProvideHandle providerInterface)
         {
@@ -48,13 +51,29 @@ namespace DownloadContent.Providers
             var url = provideHandle.ResourceManager.TransformInternalId(provideHandle.Location);
             Debug.Log($"OnDlcAssetBundleFetched: {url}");
 
-            var bundleLocation = new ResourceLocationBase(url, url, GetType().FullName, typeof(IResourceLocator), provideHandle.Location.Dependencies.ToArray())
+            IResourceLocation[] dependencies = provideHandle.Location.HasDependencies
+                ? provideHandle.Location.Dependencies.ToArray()
+                : new IResourceLocation[0];
+            var bundleLocation = new ResourceLocationBase(url, url, GetType().FullName, typeof(IResourceLocator), dependencies)
             {
                 Data = provideHandle.Location.Data,
                 PrimaryKey = provideHandle.Location.PrimaryKey
             };
 
-            provideHandle.ResourceManager.ProvideResource<IAssetBundleResource>(bundleLocation).Completed += OnAssetBundleLoaded;
+            AsyncOperationHandle<IAssetBundleResource> asyncOperationHandle;
+            if (bundleOperationHandlers.TryGetValue(url, out asyncOperationHandle))
+            {
+                // Release already running handler
+                if (asyncOperationHandle.IsValid())
+                {
+                    Debug.Log($"Release already running handler: {url}");
+                    provideHandle.ResourceManager.Release(asyncOperationHandle);
+                }
+            }
+            Debug.Log($"passing {url} to Unity asset bundle at {bundleLocation.PrimaryKey}");
+            asyncOperationHandle = provideHandle.ResourceManager.ProvideResource<IAssetBundleResource>(bundleLocation);
+            bundleOperationHandlers.Add(url, asyncOperationHandle);
+            asyncOperationHandle.Completed += OnAssetBundleLoaded;
         }
 
         private void OnAssetBundleLoaded(AsyncOperationHandle<IAssetBundleResource> handle)
@@ -68,6 +87,23 @@ namespace DownloadContent.Providers
             {
                 Debug.LogError($"Failed to load asset bundle: {handle.OperationException}");
                 provideHandle.Complete<IAssetBundleResource>(null, false, handle.OperationException);
+            }
+        }
+
+        public override void Release(IResourceLocation location, object asset)
+        {
+            base.Release(location, asset);
+            //var url = location.InternalId;
+            var url = provideHandle.ResourceManager.TransformInternalId(location);
+            Debug.Log($"Release: {url}");
+            // We have to make sure that the actual Bundle Load operation for this asset also gets released together with the DLC asset
+            if (bundleOperationHandlers.TryGetValue(url, out AsyncOperationHandle<IAssetBundleResource> operation))
+            {
+                if (operation.IsValid())
+                {
+                    Addressables.ResourceManager.Release(operation);
+                }
+                bundleOperationHandlers.Remove(url);
             }
         }
     }
