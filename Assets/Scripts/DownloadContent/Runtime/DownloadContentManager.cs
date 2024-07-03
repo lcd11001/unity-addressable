@@ -1,6 +1,5 @@
 using DownloadContent.Contants;
 using DownloadContent.Controllers;
-using DownloadContent.Helpers;
 using DownloadContent.Services;
 using System;
 using System.Collections;
@@ -13,50 +12,37 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace DownloadContent
 {
-    public class DownloadContentManager : Singleton<DownloadContentManager>
+    public class DownloadContentManager
     {
-        private bool _isInitialized = false;
-        public bool IsInitialized => _isInitialized;
+        private static bool _isInitialized = false;
+        public static bool IsInitialized => _isInitialized;
 
-        public event Action OnInitialized;
+        public static event Action OnInitialized;
 
-        private Func<IResourceLocation, string> _internalIdTransformFunc;
-        protected Func<IResourceLocation, string> InternalIdTransformFunc
+        protected static Func<IResourceLocation, string> InternalIdTransformFunc
         {
-            get => _internalIdTransformFunc;
+            get => Addressables.ResourceManager.InternalIdTransformFunc;
             private set
             {
-                _internalIdTransformFunc = value;
                 Addressables.ResourceManager.InternalIdTransformFunc = value;
             }
         }
 
-        private Action<UnityWebRequest> _webRequestOverride;
-        protected Action<UnityWebRequest> WebRequestOverride
+        protected static Action<UnityWebRequest> WebRequestOverride
         {
-            get => _webRequestOverride;
+            get => Addressables.ResourceManager.WebRequestOverride;
             private set
             {
-                _webRequestOverride = value;
                 Addressables.ResourceManager.WebRequestOverride = value;
             }
         }
 
-        private DownloadContentController _controller;
-        private DownloadContentService _service;
-
-        public DownloadContentManager()
+        public static void Initialize()
         {
-            _controller = new DownloadContentController();
-            _service = new DownloadContentService();
+            Initialize(DownloadContentController.IdTransformFunc, DownloadContentController.GetWebRequestFunc);
         }
 
-        public void Initialize()
-        {
-            Initialize(_controller.IdTransformFunc, _controller.GetWebRequestFunc);
-        }
-
-        public void Initialize(Func<IResourceLocation, string> internalIdTransformFunc, Action<UnityWebRequest> webRequestOverride)
+        public static void Initialize(Func<IResourceLocation, string> internalIdTransformFunc, Action<UnityWebRequest> webRequestOverride)
         {
             if (_isInitialized)
             {
@@ -69,32 +55,5 @@ namespace DownloadContent
             _isInitialized = true;
             OnInitialized?.Invoke();
         }
-
-        public bool IsDlcUrl(string url)
-        {
-            return !string.IsNullOrEmpty(url) && url.StartsWith(DownloadContentConstants.DLC_URL_START);
-        }
-
-        public void CacheDlcUrl(string remoteUrl, string dlcUrl)
-        {
-            _controller.SetInternalIdToDlcUrl(remoteUrl, dlcUrl);
-        }
-
-#if UNITY_EDITOR
-        [InitializeOnLoadMethod]
-        static void RegisterPlayModeStateChange()
-        {
-            EditorApplication.playModeStateChanged += SetInstanceReInitFlagOnExitPlayMode;
-        }
-
-        static void SetInstanceReInitFlagOnExitPlayMode(PlayModeStateChange change)
-        {
-            if (change == PlayModeStateChange.EnteredEditMode || change == PlayModeStateChange.ExitingPlayMode)
-            {
-                reinitializeInstance = true;
-            }
-        }
-
-#endif
     }
 }

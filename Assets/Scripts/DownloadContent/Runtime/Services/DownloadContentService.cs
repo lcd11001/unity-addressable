@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using DownloadContent.Contants;
+using DownloadContent.Controllers;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement;
@@ -14,8 +16,8 @@ namespace DownloadContent.Services
 {
     public class DownloadContentService
     {
-        private int _fetchCount = 0;
-        public virtual void GetDlcUrl(List<object> keys, Action onComplete)
+        private static int _fetchCount = 0;
+        public static void GetDlcUrl(List<object> keys, Action onComplete)
         {
             foreach (var key in keys)
             {
@@ -28,7 +30,7 @@ namespace DownloadContent.Services
                             foreach (var dependency in location.Dependencies)
                             {
                                 string remoteUrl = Addressables.ResourceManager.TransformInternalId(dependency);
-                                if (DownloadContentManager.Instance.IsDlcUrl(remoteUrl))
+                                if (DownloadContentConstants.IsDlcUrl(remoteUrl))
                                 {
                                     StartUrlFetch(remoteUrl, onComplete);
                                 }
@@ -39,7 +41,7 @@ namespace DownloadContent.Services
             }
         }
 
-        private void StartUrlFetch(string remoteUrl, Action onComplete)
+        private static void StartUrlFetch(string remoteUrl, Action onComplete)
         {
             _fetchCount++;
             // Simulate network request
@@ -56,7 +58,7 @@ namespace DownloadContent.Services
                         // [TODO]: call backend to get presigned url
                         string url = remoteUrl.Replace(Addressables.RuntimePath, Addressables.BuildPath);
                         Debug.Log($"Fetched DLC url: {remoteUrl} => {url}");
-                        DownloadContentManager.Instance.CacheDlcUrl(remoteUrl, url);
+                        DownloadContentController.SetInternalIdToDlcUrl(remoteUrl, url);
 
                         _fetchCount--;
                         if (_fetchCount == 0)

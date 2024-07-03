@@ -15,19 +15,19 @@ namespace DownloadContent.Providers
         {
             this.provideHandle = provideHandle;
 
-            if (DownloadContentManager.Instance.IsInitialized)
+            if (DownloadContentManager.IsInitialized)
             {
                 LoadManifest();
             }
             else
             {
-                DownloadContentManager.Instance.OnInitialized += LoadManifest;
+                DownloadContentManager.OnInitialized += LoadManifest;
             }
         }
 
         private void LoadManifest()
         {
-            DownloadContentManager.Instance.OnInitialized -= LoadManifest;
+            DownloadContentManager.OnInitialized -= LoadManifest;
             Debug.Log($"LoadManifest: {provideHandle.Location.InternalId}");
         }
     }

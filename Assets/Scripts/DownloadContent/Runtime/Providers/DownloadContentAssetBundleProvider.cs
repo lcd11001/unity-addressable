@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using DownloadContent.Contants;
 using UnityEngine;
 using UnityEngine.ResourceManagement.ResourceProviders;
 
@@ -16,7 +17,7 @@ namespace DownloadContent.Providers
             string path = providerInterface.ResourceManager.TransformInternalId(providerInterface.Location);
             Debug.Log($"Transformed {providerInterface.Location.InternalId} to {path}");
 
-            if (DownloadContentManager.Instance.IsDlcUrl(path) == false)
+            if (DownloadContentConstants.IsDlcUrl(path) == false)
             {
                 Debug.Log($"Not a DLC URL: {path}. Redirect to base Unity provider");
                 base.Provide(providerInterface);
@@ -24,19 +25,19 @@ namespace DownloadContent.Providers
             }
 
             this.provideHandle = providerInterface;
-            if (DownloadContentManager.Instance.IsInitialized)
+            if (DownloadContentManager.IsInitialized)
             {
                 LoadResource();
             }
             else
             {
-                DownloadContentManager.Instance.OnInitialized += LoadResource;
+                DownloadContentManager.OnInitialized += LoadResource;
             }
         }
 
         private void LoadResource()
         {
-            DownloadContentManager.Instance.OnInitialized -= LoadResource;
+            DownloadContentManager.OnInitialized -= LoadResource;
         }
     }
 }

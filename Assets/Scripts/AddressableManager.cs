@@ -83,13 +83,13 @@ public class AddressableManager : MonoBehaviour
         */
 #else
         // Hook DLC
-        Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentAssetBundleProvider());
-        Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentJsonAssetProvider());
-        Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentHashProvider());
+        // Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentAssetBundleProvider());
+        // Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentJsonAssetProvider());
+        // Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentHashProvider());
 
-        DownloadContentManager.Instance.OnInitialized += InitAddressable;
-        DownloadContentManager.Instance.Initialize();
-        // InitAddressable();
+        // DownloadContentManager.OnInitialized += InitAddressable;
+        // DownloadContentManager.Initialize();
+        InitAddressable();
 
         // refCube.LoadAssetAsync<GameObject>().Completed += OnCubeLoaded;
         // refLogo.LoadAssetAsync<Texture2D>().Completed += OnLogoLoaded;

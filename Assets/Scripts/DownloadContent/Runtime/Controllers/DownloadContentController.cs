@@ -1,4 +1,3 @@
-using DownloadContent.Helpers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,10 +10,10 @@ namespace DownloadContent.Controllers
 {
     public class DownloadContentController
     {
-        protected readonly Dictionary<string, string> internalIdToDlcUrl = new Dictionary<string, string>();
-        protected readonly Dictionary<string, string> originalDlcUrl = new Dictionary<string, string>();
+        protected static readonly Dictionary<string, string> internalIdToDlcUrl = new Dictionary<string, string>();
+        protected static readonly Dictionary<string, string> originalDlcUrl = new Dictionary<string, string>();
 
-        public virtual string IdTransformFunc(IResourceLocation location)
+        public static string IdTransformFunc(IResourceLocation location)
         {
             if (internalIdToDlcUrl.TryGetValue(location.InternalId, out string dlcUrl))
             {
@@ -24,7 +23,7 @@ namespace DownloadContent.Controllers
             return location.InternalId;
         }
 
-        public virtual void SetInternalIdToDlcUrl(string internalId, string dlcUrl)
+        public static void SetInternalIdToDlcUrl(string internalId, string dlcUrl)
         {
             internalIdToDlcUrl[internalId] = dlcUrl;
 
@@ -32,7 +31,7 @@ namespace DownloadContent.Controllers
             originalDlcUrl[sanitizedUrl] = dlcUrl;
         }
 
-        public virtual void GetWebRequestFunc(UnityWebRequest request)
+        public static void GetWebRequestFunc(UnityWebRequest request)
         {
             var originalUrl = GetOriginalDlcUrl(request.url);
             if (originalUrl != request.url)
@@ -42,7 +41,7 @@ namespace DownloadContent.Controllers
             }
         }
 
-        private string GetOriginalDlcUrl(string url)
+        protected static string GetOriginalDlcUrl(string url)
         {
             if (originalDlcUrl.TryGetValue(url, out string originalUrl))
             {
