@@ -1,9 +1,11 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using DownloadContent.Contants;
+using DownloadContent.Services;
 using UnityEngine;
+using UnityEngine.AddressableAssets.ResourceLocators;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 
 namespace DownloadContent.Providers
@@ -15,8 +17,6 @@ namespace DownloadContent.Providers
         public override void Provide(ProvideHandle providerInterface)
         {
             string path = providerInterface.ResourceManager.TransformInternalId(providerInterface.Location);
-            Debug.Log($"Transformed {providerInterface.Location.InternalId} to {path}");
-
             if (DownloadContentConstants.IsDlcUrl(path) == false)
             {
                 Debug.Log($"Not a DLC URL: {path}. Redirect to base Unity provider");
@@ -38,6 +38,37 @@ namespace DownloadContent.Providers
         private void LoadResource()
         {
             DownloadContentManager.OnInitialized -= LoadResource;
+            Debug.Log($"LoadResource: {provideHandle.Location.InternalId}");
+
+            DownloadContentService.GetDlcUrlFromLocation(provideHandle.Location, OnDlcAssetBundleFetched);
+        }
+
+        private void OnDlcAssetBundleFetched()
+        {
+            var url = provideHandle.ResourceManager.TransformInternalId(provideHandle.Location);
+            Debug.Log($"OnDlcAssetBundleFetched: {url}");
+
+            var bundleLocation = new ResourceLocationBase(url, url, GetType().FullName, typeof(IResourceLocator), provideHandle.Location.Dependencies.ToArray())
+            {
+                Data = provideHandle.Location.Data,
+                PrimaryKey = provideHandle.Location.PrimaryKey
+            };
+
+            provideHandle.ResourceManager.ProvideResource<IAssetBundleResource>(bundleLocation).Completed += OnAssetBundleLoaded;
+        }
+
+        private void OnAssetBundleLoaded(AsyncOperationHandle<IAssetBundleResource> handle)
+        {
+            if (handle.Status == AsyncOperationStatus.Succeeded)
+            {
+                Debug.Log($"OnAssetBundleLoaded: {handle.Result}");
+                provideHandle.Complete(handle.Result, true, null);
+            }
+            else
+            {
+                Debug.LogError($"Failed to load asset bundle: {handle.OperationException}");
+                provideHandle.Complete<IAssetBundleResource>(null, false, handle.OperationException);
+            }
         }
     }
 }

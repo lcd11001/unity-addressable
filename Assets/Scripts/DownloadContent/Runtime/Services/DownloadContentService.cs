@@ -41,18 +41,7 @@ namespace DownloadContent.Services
 
         public static void GetDlcUrlFromLocations(List<IResourceLocation> locations, Action onComplete)
         {
-            List<object> keys = new List<object>();
-
-            foreach (var location in locations)
-            {
-                foreach (var dependency in location.Dependencies)
-                {
-                    keys.Add(dependency.PrimaryKey);
-                }
-
-                keys.Add(location.PrimaryKey);
-            }
-
+            List<object> keys = locations.Select(location => location.PrimaryKey as object).ToList();
             GetDlcUrlFromKeys(keys, onComplete);
         }
 
@@ -103,6 +92,7 @@ namespace DownloadContent.Services
 
         public static void FetchUrlFromKeys(List<object> keys, Action onComplete)
         {
+            /*
             List<string> remoteUrls = new List<string>();
 
             foreach (var key in keys)
@@ -113,9 +103,12 @@ namespace DownloadContent.Services
                     {
                         foreach (IResourceLocation location in locations)
                         {
-                            foreach (var dependency in location.Dependencies)
+                            if (location.HasDependencies)
                             {
-                                remoteUrls.Add(dependency.InternalId);
+                                foreach (var dependency in location.Dependencies)
+                                {
+                                    remoteUrls.Add(dependency.InternalId);
+                                }
                             }
 
                             remoteUrls.Add(location.InternalId);
@@ -124,11 +117,47 @@ namespace DownloadContent.Services
                     }
                 }
             }
+            */
+            List<string> remoteUrls = new List<string>();
+            GetRemoteUrlsFromKeysRecursive(keys, remoteUrls);
+            if (remoteUrls.Count == 0)
+            {
+                onComplete?.Invoke();
+                return;
+            }
 
             _fetchQueue.Enqueue(() => FetchUrlFromRemotes(remoteUrls, onComplete));
             if (!_isFetching)
             {
                 ProcessQueue();
+            }
+        }
+
+        private static void GetRemoteUrlsFromKeysRecursive(List<object> keys, List<string> remoteUrls)
+        {
+            if (keys == null || keys.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var key in keys)
+            {
+                foreach (IResourceLocator locator in Addressables.ResourceLocators)
+                {
+                    if (locator.Locate(key, typeof(object), out IList<IResourceLocation> locations))
+                    {
+                        foreach (IResourceLocation location in locations)
+                        {
+                            if (location.HasDependencies)
+                            {
+                                List<object> subKeys = location.Dependencies.Select(dependency => dependency.PrimaryKey as object).ToList();
+                                GetRemoteUrlsFromKeysRecursive(subKeys, remoteUrls);
+                            }
+
+                            remoteUrls.Add(location.InternalId);
+                        }
+                    }
+                }
             }
         }
 
