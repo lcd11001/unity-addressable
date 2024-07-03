@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DownloadContent.Contants;
@@ -17,8 +18,93 @@ namespace DownloadContent.Services
     public class DownloadContentService
     {
         private static int _fetchCount = 0;
-        public static void GetDlcUrl(List<object> keys, Action onComplete)
+
+        private static Queue<Action> _fetchQueue = new Queue<Action>();
+        private static bool _isFetching = false;
+
+        public static void GetDlcUrlFromKey(object key, Action onComplete)
         {
+            List<object> keys = new List<object> { key };
+            GetDlcUrlFromKeys(keys, onComplete);
+        }
+
+        public static void GetDlcUrlFromKeys(List<object> keys, Action onComplete)
+        {
+            FetchUrlFromKeys(keys, onComplete);
+        }
+
+        public static void GetDlcUrlFromLocation(IResourceLocation location, Action onComplete)
+        {
+            List<IResourceLocation> locations = new List<IResourceLocation> { location };
+            GetDlcUrlFromLocations(locations, onComplete);
+        }
+
+        public static void GetDlcUrlFromLocations(List<IResourceLocation> locations, Action onComplete)
+        {
+            List<object> keys = new List<object>();
+
+            foreach (var location in locations)
+            {
+                foreach (var dependency in location.Dependencies)
+                {
+                    keys.Add(dependency.PrimaryKey);
+                }
+
+                keys.Add(location.PrimaryKey);
+            }
+
+            GetDlcUrlFromKeys(keys, onComplete);
+        }
+
+        public static void GetDlcUrlFromInternalId(string remoteUrl, Action onComplete)
+        {
+            _fetchQueue.Enqueue(() => FetchUrlFromRemote(remoteUrl, onComplete));
+            if (!_isFetching)
+            {
+                ProcessQueue();
+            }
+        }
+
+        public static void GetDlcUrlFromInternalId(IResourceLocation location, Action onComplete)
+        {
+            GetDlcUrlFromInternalId(location.InternalId, onComplete);
+        }
+
+        private static void FetchUrlFromRemotes(List<string> remoteUrls, Action onComplete)
+        {
+            foreach (var remoteUrl in remoteUrls)
+            {
+                if (DownloadContentConstants.IsDlcUrl(remoteUrl))
+                {
+                    StartUrlFetch(remoteUrl, onComplete);
+                }
+            }
+        }
+
+        private static void FetchUrlFromRemote(string remoteUrl, Action onComplete)
+        {
+            List<string> remoteUrls = new List<string> { remoteUrl };
+            FetchUrlFromRemotes(remoteUrls, onComplete);
+        }
+
+        private static void ProcessQueue()
+        {
+            if (_fetchQueue.Count > 0)
+            {
+                _isFetching = true;
+                Action fetchAction = _fetchQueue.Dequeue();
+                fetchAction.Invoke();
+            }
+            else
+            {
+                _isFetching = false;
+            }
+        }
+
+        public static void FetchUrlFromKeys(List<object> keys, Action onComplete)
+        {
+            List<string> remoteUrls = new List<string>();
+
             foreach (var key in keys)
             {
                 foreach (IResourceLocator locator in Addressables.ResourceLocators)
@@ -29,15 +115,20 @@ namespace DownloadContent.Services
                         {
                             foreach (var dependency in location.Dependencies)
                             {
-                                string remoteUrl = Addressables.ResourceManager.TransformInternalId(dependency);
-                                if (DownloadContentConstants.IsDlcUrl(remoteUrl))
-                                {
-                                    StartUrlFetch(remoteUrl, onComplete);
-                                }
+                                remoteUrls.Add(dependency.InternalId);
                             }
+
+                            remoteUrls.Add(location.InternalId);
                         }
+
                     }
                 }
+            }
+
+            _fetchQueue.Enqueue(() => FetchUrlFromRemotes(remoteUrls, onComplete));
+            if (!_isFetching)
+            {
+                ProcessQueue();
             }
         }
 
@@ -56,14 +147,17 @@ namespace DownloadContent.Services
                     else
                     {
                         // [TODO]: call backend to get presigned url
-                        string url = remoteUrl.Replace(Addressables.RuntimePath, Addressables.BuildPath);
-                        Debug.Log($"Fetched DLC url: {remoteUrl} => {url}");
+                        string url = remoteUrl.Replace(DownloadContentConstants.DLC_URL_START, "DLC/");
+                        Debug.Log($"Fetched DLC from {remoteUrl} => {url}");
                         DownloadContentController.SetInternalIdToDlcUrl(remoteUrl, url);
 
                         _fetchCount--;
                         if (_fetchCount == 0)
                         {
                             onComplete?.Invoke();
+
+                            // Continue with the next item in the queue
+                            ProcessQueue();
                         }
                     }
                 });
