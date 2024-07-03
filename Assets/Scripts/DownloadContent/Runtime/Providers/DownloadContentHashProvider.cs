@@ -5,6 +5,8 @@ using System.ComponentModel;
 using DownloadContent.Services;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 
 namespace DownloadContent.Providers
@@ -19,25 +21,43 @@ namespace DownloadContent.Providers
 
             if (DownloadContentManager.IsInitialized)
             {
-                LoadManifest();
+                FetchHash();
             }
             else
             {
-                DownloadContentManager.OnInitialized += LoadManifest;
+                DownloadContentManager.OnInitialized += FetchHash;
             }
         }
 
-        private void LoadManifest()
+        private void FetchHash()
         {
-            DownloadContentManager.OnInitialized -= LoadManifest;
-            Debug.Log($"LoadManifest: {provideHandle.Location.InternalId}");
+            DownloadContentManager.OnInitialized -= FetchHash;
+            Debug.Log($"FetchHash: {provideHandle.Location.InternalId}");
 
-            DownloadContentService.GetDlcUrlFromInternalId(provideHandle.Location.InternalId, OnDlcManifestFetched);
+            DownloadContentService.GetDlcUrlFromInternalId(provideHandle.Location.InternalId, OnDlcHashFetched);
         }
 
-        private void OnDlcManifestFetched()
+        private void OnDlcHashFetched()
         {
-            Debug.Log($"OnDlcManifestFetched: {Addressables.ResourceManager.TransformInternalId(provideHandle.Location)}");
+            var url = Addressables.ResourceManager.TransformInternalId(provideHandle.Location);
+            Debug.Log($"OnDlcHashFetched: {url}");
+
+            var hashLocation = new ResourceLocationBase(url, url, typeof(TextDataProvider).FullName, typeof(string));
+            provideHandle.ResourceManager.ProvideResource<string>(hashLocation).Completed += OnHashLoaded;
+        }
+
+        private void OnHashLoaded(AsyncOperationHandle<string> handle)
+        {
+            if (handle.Status == AsyncOperationStatus.Succeeded)
+            {
+                Debug.Log($"OnHashLoaded: {handle.Result}");
+                provideHandle.Complete(handle.Result, true, null);
+            }
+            else
+            {
+                Debug.LogError($"Failed to load hash: {handle.OperationException}");
+                provideHandle.Complete<string>(null, false, handle.OperationException);
+            }
         }
     }
 }
