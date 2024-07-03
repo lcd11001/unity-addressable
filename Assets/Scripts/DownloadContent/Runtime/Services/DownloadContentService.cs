@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DownloadContent.Contants;
 using DownloadContent.Controllers;
+using DownloadContent.Views;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement;
@@ -183,7 +184,8 @@ namespace DownloadContent.Services
                         _fetchCount--;
                         if (_fetchCount == 0)
                         {
-                            onComplete?.Invoke();
+                            DownloadContentMainThread.ExecuteInMainThread(() => onComplete?.Invoke());
+                            // onComplete?.Invoke();
 
                             // Continue with the next item in the queue
                             ProcessQueue();

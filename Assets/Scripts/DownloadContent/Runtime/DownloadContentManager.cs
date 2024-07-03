@@ -1,9 +1,11 @@
 using DownloadContent.Contants;
 using DownloadContent.Controllers;
 using DownloadContent.Services;
+using DownloadContent.Views;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -52,8 +54,19 @@ namespace DownloadContent
             InternalIdTransformFunc = internalIdTransformFunc;
             WebRequestOverride = webRequestOverride;
 
+            InitializeMainThread();
+
             _isInitialized = true;
             OnInitialized?.Invoke();
+        }
+
+        private static void InitializeMainThread()
+        {
+            if (DownloadContentMainThread.Instance == null)
+            {
+                Debug.LogError("Can not create DownloadContentMainThread instance. Please call Initialize method from main thread, such as from Start or Awake.");
+                return;
+            }
         }
     }
 }
