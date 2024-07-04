@@ -1,11 +1,7 @@
 using DownloadContent.Controllers;
-using DownloadContent.Services;
 using DownloadContent.Views;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;

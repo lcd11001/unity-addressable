@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -15,10 +16,12 @@ namespace DownloadContent.Providers
     public class DownloadContentAssetBundleProvider : AssetBundleProvider
     {
         protected readonly Dictionary<string, AsyncOperationHandle<IAssetBundleResource>> bundleOperationHandlers = new Dictionary<string, AsyncOperationHandle<IAssetBundleResource>>();
-        private ProvideHandle provideHandle;
+
+        // private ProvideHandle provideHandle;
+        private Action initAction = null;
         public override void Provide(ProvideHandle providerInterface)
         {
-            string path = providerInterface.ResourceManager.TransformInternalId(providerInterface.Location);
+            string path = Addressables.ResourceManager.TransformInternalId(providerInterface.Location);
             if (DownloadContentService.IsSupportFormat(path) == false)
             {
                 Debug.Log($"Not a DLC URL: {path}. Redirect to base Unity provider");
@@ -26,28 +29,38 @@ namespace DownloadContent.Providers
                 return;
             }
 
-            this.provideHandle = providerInterface;
+            /*
+             * When Provide method is called, it assigns the providerInterface parameter to the class member provideHandle. 
+             * This works fine for synchronous, single-request scenarios. However, in asynchronous or concurrent scenarios, 
+             * where Provide might be called multiple times before previous requests have completed, each call to Provide 
+             * overwrites provideHandle with a new instance. This means that by the time LoadResource or OnDlcAssetBundleFetched 
+             * is executed, provideHandle may no longer refer to the original request that triggered these methods but to 
+             * the most recent request instead.
+             */
+            // this.provideHandle = providerInterface;
+
             if (DownloadContentManager.IsInitialized)
             {
-                LoadResource();
+                LoadResource(providerInterface);
             }
             else
             {
-                DownloadContentManager.OnInitialized += LoadResource;
+                initAction = () => LoadResource(providerInterface);
+                DownloadContentManager.OnInitialized += initAction;
             }
         }
 
-        private void LoadResource()
+        private void LoadResource(ProvideHandle provideHandle)
         {
-            DownloadContentManager.OnInitialized -= LoadResource;
+            DownloadContentManager.OnInitialized -= initAction;
             Debug.Log($"LoadResource: {provideHandle.Location.InternalId}");
 
-            DownloadContentService.GetDlcUrlFromLocation(provideHandle.Location, OnDlcAssetBundleFetched);
+            DownloadContentService.GetDlcUrlFromLocation(provideHandle.Location, () => OnDlcAssetBundleFetched(provideHandle));
         }
 
-        private void OnDlcAssetBundleFetched()
+        private void OnDlcAssetBundleFetched(ProvideHandle provideHandle)
         {
-            var url = provideHandle.ResourceManager.TransformInternalId(provideHandle.Location);
+            var url = Addressables.ResourceManager.TransformInternalId(provideHandle.Location);
             Debug.Log($"OnDlcAssetBundleFetched: {url}");
 
             IResourceLocation[] dependencies = provideHandle.Location.HasDependencies
@@ -72,10 +85,10 @@ namespace DownloadContent.Providers
             Debug.Log($"passing {url} to Unity asset bundle at {bundleLocation.PrimaryKey}");
             asyncOperationHandle = provideHandle.ResourceManager.ProvideResource<IAssetBundleResource>(bundleLocation);
             bundleOperationHandlers.Add(url, asyncOperationHandle);
-            asyncOperationHandle.Completed += OnAssetBundleLoaded;
+            asyncOperationHandle.Completed += (handle) => OnAssetBundleLoaded(handle, provideHandle);
         }
 
-        private void OnAssetBundleLoaded(AsyncOperationHandle<IAssetBundleResource> handle)
+        private void OnAssetBundleLoaded(AsyncOperationHandle<IAssetBundleResource> handle, ProvideHandle provideHandle)
         {
             if (handle.Status == AsyncOperationStatus.Succeeded)
             {
@@ -92,8 +105,8 @@ namespace DownloadContent.Providers
         public override void Release(IResourceLocation location, object asset)
         {
             base.Release(location, asset);
-            //var url = location.InternalId;
-            var url = provideHandle.ResourceManager.TransformInternalId(location);
+            var url = location.InternalId;
+            //var url = Addressables.ResourceManager.TransformInternalId(location);
             Debug.Log($"Release: {url}");
             // We have to make sure that the actual Bundle Load operation for this asset also gets released together with the DLC asset
             if (bundleOperationHandlers.TryGetValue(url, out AsyncOperationHandle<IAssetBundleResource> operation))

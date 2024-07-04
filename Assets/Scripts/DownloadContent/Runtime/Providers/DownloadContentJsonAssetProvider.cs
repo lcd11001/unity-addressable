@@ -13,7 +13,8 @@ namespace DownloadContent.Providers
     [DisplayName("DLC JSON Asset Provider")]
     public class DownloadContentJsonAssetProvider : JsonAssetProvider
     {
-        private ProvideHandle provideHandle;
+        // private ProvideHandle provideHandle;
+        private Action initAction = null;
 
         /// <summary>
         /// Unfortunately we have to override this because the method CanProvide is only called once and when the InternalId
@@ -21,35 +22,36 @@ namespace DownloadContent.Providers
         /// </summary>
         public override string ProviderId => typeof(JsonAssetProvider).FullName;
 
-        public override void Provide(ProvideHandle provideHandle)
+        public override void Provide(ProvideHandle provideInterface)
         {
-            var url = Addressables.ResourceManager.TransformInternalId(provideHandle.Location);
+            var url = Addressables.ResourceManager.TransformInternalId(provideInterface.Location);
             if (DownloadContentService.IsSupportFormat(url) == false)
             {
-                base.Provide(provideHandle);
+                base.Provide(provideInterface);
                 return;
             }
 
-            this.provideHandle = provideHandle;
+            // this.provideHandle = provideInterface;
             if (DownloadContentManager.IsInitialized)
             {
-                FetchJson();
+                FetchJson(provideInterface);
             }
             else
             {
-                DownloadContentManager.OnInitialized += FetchJson;
+                initAction = () => FetchJson(provideInterface);
+                DownloadContentManager.OnInitialized += initAction;
             }
         }
 
-        private void FetchJson()
+        private void FetchJson(ProvideHandle provideHandle)
         {
-            DownloadContentManager.OnInitialized -= FetchJson;
+            DownloadContentManager.OnInitialized -= initAction;
             Debug.Log($"FetchJson: {provideHandle.Location.InternalId}");
 
-            DownloadContentService.GetDlcUrlFromInternalId(provideHandle.Location.InternalId, OnDlcJsonFetched);
+            DownloadContentService.GetDlcUrlFromInternalId(provideHandle.Location.InternalId, () => OnDlcJsonFetched(provideHandle));
         }
 
-        private void OnDlcJsonFetched()
+        private void OnDlcJsonFetched(ProvideHandle provideHandle)
         {
             var url = Addressables.ResourceManager.TransformInternalId(provideHandle.Location);
             Debug.Log($"OnDlcJsonFetched: {url}");
@@ -58,7 +60,7 @@ namespace DownloadContent.Providers
 
             if (provideHandle.Location.ResourceType == typeof(ContentCatalogData))
             {
-                provideHandle.ResourceManager.ProvideResource<ContentCatalogData>(jsonLocation).Completed += OnJsonLoaded;
+                provideHandle.ResourceManager.ProvideResource<ContentCatalogData>(jsonLocation).Completed += (handle) => OnJsonLoaded(handle, provideHandle);
             }
             else
             {
@@ -67,7 +69,7 @@ namespace DownloadContent.Providers
             }
         }
 
-        private void OnJsonLoaded(AsyncOperationHandle<ContentCatalogData> handle)
+        private void OnJsonLoaded(AsyncOperationHandle<ContentCatalogData> handle, ProvideHandle provideHandle)
         {
             if (handle.Status == AsyncOperationStatus.Succeeded)
             {
