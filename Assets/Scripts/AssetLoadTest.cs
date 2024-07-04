@@ -16,6 +16,14 @@ public class AssetLoadTest : MonoBehaviour
         Addressables.InitializeAsync().Completed += AssetLoadTest_Completed;
     }
 
+    private void OnDestroy()
+    {
+        if (addressableAssetKey.IsValid())
+        {
+            addressableAssetKey.ReleaseAsset();
+        }
+    }
+
     private void AssetLoadTest_Completed(AsyncOperationHandle<IResourceLocator> handle)
     {
         if (handle.Status == AsyncOperationStatus.Succeeded)
@@ -51,7 +59,7 @@ public class AssetLoadTest : MonoBehaviour
             go.name += $"_{index}";
 
             // Note: Consider releasing the asset if you're done with it, especially if you're not instantiating it
-            Addressables.Release(handle);
+            // Addressables.Release(handle);
         }
         else
         {
