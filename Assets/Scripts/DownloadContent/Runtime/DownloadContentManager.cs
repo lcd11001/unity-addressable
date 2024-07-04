@@ -39,20 +39,23 @@ namespace DownloadContent
             }
         }
 
-        public static void Initialize()
+        public static IEnumerator InitializeCoroutine()
         {
-            Initialize(DownloadContentController.IdTransformFunc, DownloadContentController.GetWebRequestFunc);
+            yield return InitializeCoroutine(DownloadContentController.IdTransformFunc, DownloadContentController.GetWebRequestFunc);
         }
 
-        public static void Initialize(Func<IResourceLocation, string> internalIdTransformFunc, Action<UnityWebRequest> webRequestOverride)
+        public static IEnumerator InitializeCoroutine(Func<IResourceLocation, string> internalIdTransformFunc, Action<UnityWebRequest> webRequestOverride)
         {
             if (_isInitialized)
             {
-                return;
+                yield break;
             }
 
             InternalIdTransformFunc = internalIdTransformFunc;
             WebRequestOverride = webRequestOverride;
+
+            // Wait for the next frame to ensure we are on the main thread
+            yield return null;
 
             InitializeMainThread();
 
@@ -62,7 +65,17 @@ namespace DownloadContent
 
         private static void InitializeMainThread()
         {
-            if (DownloadContentMainThread.Instance == null)
+            // create instance of DownloadContentMainThread
+            try
+            {
+                _ = DownloadContentMainThread.Instance;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(e.Message);
+            }
+            // check if instance is created
+            if (DownloadContentMainThread.Exists == false)
             {
                 Debug.LogError("Can not create DownloadContentMainThread instance. Please call Initialize method from main thread, such as from Start or Awake.");
                 return;

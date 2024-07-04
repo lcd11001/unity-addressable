@@ -88,7 +88,7 @@ public class AddressableManager : MonoBehaviour
         Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentHashProvider());
 
         DownloadContentManager.OnInitialized += InitAddressable;
-        DownloadContentManager.Initialize();
+        StartCoroutine(DownloadContentManager.InitializeCoroutine());
         // InitAddressable();
 
         // refCube.LoadAssetAsync<GameObject>().Completed += OnCubeLoaded;
