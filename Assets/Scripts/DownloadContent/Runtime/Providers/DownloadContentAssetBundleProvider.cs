@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using DownloadContent.Contants;
 using DownloadContent.Services;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -20,7 +19,7 @@ namespace DownloadContent.Providers
         public override void Provide(ProvideHandle providerInterface)
         {
             string path = providerInterface.ResourceManager.TransformInternalId(providerInterface.Location);
-            if (DownloadContentConstants.IsDlcUrl(path) == false)
+            if (DownloadContentService.IsSupportFormat(path) == false)
             {
                 Debug.Log($"Not a DLC URL: {path}. Redirect to base Unity provider");
                 base.Provide(providerInterface);

@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel;
-using DownloadContent.Contants;
 using DownloadContent.Services;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -25,7 +24,7 @@ namespace DownloadContent.Providers
         public override void Provide(ProvideHandle provideHandle)
         {
             var url = Addressables.ResourceManager.TransformInternalId(provideHandle.Location);
-            if (DownloadContentConstants.IsDlcUrl(url) == false)
+            if (DownloadContentService.IsSupportFormat(url) == false)
             {
                 base.Provide(provideHandle);
                 return;

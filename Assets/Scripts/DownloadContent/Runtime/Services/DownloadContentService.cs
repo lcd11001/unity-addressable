@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using DownloadContent.Contants;
 using DownloadContent.Controllers;
+using DownloadContent.Models;
 using DownloadContent.Views;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
@@ -18,10 +15,96 @@ namespace DownloadContent.Services
 {
     public class DownloadContentService
     {
-        private static int _fetchCount = 0;
+        #region Download Content Fetcher
 
+        private static List<IDownloadContentFetcher> downloadContentFetchers = new List<IDownloadContentFetcher>
+        {
+            new DefaultDownloadContentModel()
+        };
+
+        public static void AddDownloadContentFetcher(IDownloadContentFetcher fetcher)
+        {
+            downloadContentFetchers.Add(fetcher);
+        }
+
+        public static void InsertDownloadContentFetcher(IDownloadContentFetcher fetcher, int index)
+        {
+            downloadContentFetchers.Insert(index, fetcher);
+        }
+
+        public static void RemoveDownloadContentFetcher(IDownloadContentFetcher fetcher)
+        {
+            downloadContentFetchers.Remove(fetcher);
+        }
+
+        public static void RemoveDownloadContentFetcherAt(int index)
+        {
+            downloadContentFetchers.RemoveAt(index);
+        }
+
+        public static IDownloadContentFetcher GetDownloadContentFetcher(string url)
+        {
+            foreach (var fetcher in downloadContentFetchers)
+            {
+                if (fetcher.IsSupportFormat(url))
+                {
+                    return fetcher;
+                }
+            }
+
+            return null;
+        }
+
+        public static bool IsSupportFormat(string url)
+        {
+            foreach (var fetcher in downloadContentFetchers)
+            {
+                if (fetcher.IsSupportFormat(url))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        #endregion
+
+        #region Download Queue
+
+        private static int _fetchCount = 0;
         private static Queue<Action> _fetchQueue = new Queue<Action>();
         private static bool _isFetching = false;
+
+        private static void ProcessQueue()
+        {
+            if (_fetchQueue.Count > 0)
+            {
+                _isFetching = true;
+                Action fetchAction = _fetchQueue.Dequeue();
+                fetchAction.Invoke();
+            }
+            else
+            {
+                _isFetching = false;
+            }
+        }
+
+        private static void CheckAndProcessQueue(Action onComplete)
+        {
+            _fetchCount--;
+            if (_fetchCount == 0)
+            {
+                DownloadContentMainThread.ExecuteInMainThread(() => onComplete?.Invoke());
+                // onComplete?.Invoke();
+
+                // Continue with the next item in the queue
+                ProcessQueue();
+            }
+        }
+
+        #endregion
+
+        #region Get DLC Url
 
         public static void GetDlcUrlFromKey(object key, Action onComplete)
         {
@@ -60,14 +143,15 @@ namespace DownloadContent.Services
             GetDlcUrlFromInternalId(location.InternalId, onComplete);
         }
 
+        #endregion
+
+        #region Fetch DLC Url
+
         private static void FetchUrlFromRemotes(List<string> remoteUrls, Action onComplete)
         {
             foreach (var remoteUrl in remoteUrls)
             {
-                if (DownloadContentConstants.IsDlcUrl(remoteUrl))
-                {
-                    StartUrlFetch(remoteUrl, onComplete);
-                }
+                StartUrlFetch(remoteUrl, onComplete);
             }
         }
 
@@ -77,19 +161,7 @@ namespace DownloadContent.Services
             FetchUrlFromRemotes(remoteUrls, onComplete);
         }
 
-        private static void ProcessQueue()
-        {
-            if (_fetchQueue.Count > 0)
-            {
-                _isFetching = true;
-                Action fetchAction = _fetchQueue.Dequeue();
-                fetchAction.Invoke();
-            }
-            else
-            {
-                _isFetching = false;
-            }
-        }
+
 
         public static void FetchUrlFromKeys(List<object> keys, Action onComplete)
         {
@@ -165,33 +237,31 @@ namespace DownloadContent.Services
         private static void StartUrlFetch(string remoteUrl, Action onComplete)
         {
             _fetchCount++;
-            // Simulate network request
-            Task
-                .Delay(1000)
-                .ContinueWith(task =>
-                {
-                    if (task.IsCanceled || task.IsFaulted)
+
+            IDownloadContentFetcher fetcher = GetDownloadContentFetcher(remoteUrl);
+            if (fetcher != null)
+            {
+                fetcher.FetchUrl(remoteUrl,
+                    (dlcUrl) =>
+                    {
+                        Debug.Log($"Fetched DLC from {remoteUrl} => {dlcUrl}");
+                        DownloadContentController.SetInternalIdToDlcUrl(remoteUrl, dlcUrl);
+                        CheckAndProcessQueue(onComplete);
+                    },
+                    (error) =>
                     {
                         Debug.LogError($"Error fetching DLC url: {remoteUrl}");
+                        CheckAndProcessQueue(onComplete);
                     }
-                    else
-                    {
-                        // [TODO]: call backend to get presigned url
-                        string url = remoteUrl.Replace(DownloadContentConstants.DLC_URL_START, "DLC/");
-                        Debug.Log($"Fetched DLC from {remoteUrl} => {url}");
-                        DownloadContentController.SetInternalIdToDlcUrl(remoteUrl, url);
-
-                        _fetchCount--;
-                        if (_fetchCount == 0)
-                        {
-                            DownloadContentMainThread.ExecuteInMainThread(() => onComplete?.Invoke());
-                            // onComplete?.Invoke();
-
-                            // Continue with the next item in the queue
-                            ProcessQueue();
-                        }
-                    }
-                });
+                );
+            }
+            else
+            {
+                Debug.LogError($"No fetcher found for {remoteUrl}");
+                CheckAndProcessQueue(onComplete);
+            }
         }
+
+        #endregion
     }
 }
