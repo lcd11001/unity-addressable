@@ -1,4 +1,5 @@
 using DownloadContent.Controllers;
+using DownloadContent.Providers;
 using DownloadContent.Views;
 using System;
 using System.Collections;
@@ -45,6 +46,11 @@ namespace DownloadContent
             {
                 yield break;
             }
+
+            // Hook DLC
+            Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentAssetBundleProvider());
+            Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentJsonAssetProvider());
+            Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentHashProvider());
 
             InternalIdTransformFunc = internalIdTransformFunc;
             WebRequestOverride = webRequestOverride;

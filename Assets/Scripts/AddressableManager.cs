@@ -2,9 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using DownloadContent;
-using DownloadContent.Providers;
 using RobinBird.FirebaseTools.Storage.Addressables;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -82,11 +80,6 @@ public class AddressableManager : MonoBehaviour
         });
         */
 #else
-        // Hook DLC
-        Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentAssetBundleProvider());
-        Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentJsonAssetProvider());
-        Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentHashProvider());
-
         DownloadContentManager.OnInitialized += InitAddressable;
         StartCoroutine(DownloadContentManager.InitializeCoroutine());
         // InitAddressable();
