@@ -37,6 +37,11 @@ namespace DownloadContent
 
         public static IEnumerator InitializeCoroutine()
         {
+            // Hook default DLC
+            Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentAssetBundleProvider());
+            Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentJsonAssetProvider());
+            Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentHashProvider());
+
             yield return InitializeCoroutine(DownloadContentController.IdTransformFunc, DownloadContentController.GetWebRequestFunc);
         }
 
@@ -46,11 +51,6 @@ namespace DownloadContent
             {
                 yield break;
             }
-
-            // Hook DLC
-            Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentAssetBundleProvider());
-            Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentJsonAssetProvider());
-            Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentHashProvider());
 
             InternalIdTransformFunc = internalIdTransformFunc;
             WebRequestOverride = webRequestOverride;
