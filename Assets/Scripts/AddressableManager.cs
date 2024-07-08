@@ -38,6 +38,11 @@ public class AddressableManager : MonoBehaviour
     [SerializeField]
     private Slider sliderProgress;
 
+#if ADDRESSABLE_DLC_FIREBASE
+    [SerializeField]
+    private FirestoreDownloadContentModel firestoreDownloader;
+#endif
+
     private Dictionary<string, float> downloadProgression = new Dictionary<string, float>();
     private Coroutine smothSlider = null;
 
@@ -84,7 +89,7 @@ public class AddressableManager : MonoBehaviour
         DownloadContentManager.OnInitialized += InitAddressable;
         StartCoroutine(DownloadContentManager.InitializeCoroutine());
 #elif ADDRESSABLE_DLC_FIREBASE
-        DownloadContentService.AddDownloadContentFetcher(new FirestoreDownloadContentModel());
+        DownloadContentService.AddDownloadContentFetcher(firestoreDownloader);
         DownloadContentManager.OnInitialized += InitAddressable;
 #else
         InitAddressable();

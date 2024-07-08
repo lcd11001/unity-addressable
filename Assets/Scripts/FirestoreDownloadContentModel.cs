@@ -1,12 +1,16 @@
 using DownloadContent.Models;
 using Firebase.Extensions;
 using Firebase.Storage;
+using UnityEngine;
 
-public class FirestoreDownloadContentModel : IDownloadContentFetcher
+[CreateAssetMenu(fileName = "FirestoreDownloadContentModel", menuName = "DLC/Content Downloaders/Firebase Firestore")]
+public class FirestoreDownloadContentModel : ScriptableObject, IDownloadContentFetcher
 {
-    // replace xxx with your project id
-    private const string GS_URL = "gs://xxx.appspot.com/TestAddressable/";
-    private const string FIRESTORE_URL = "firestore://";
+    [Tooltip("Replace YOUR_PROJECT with your project id")]
+    [SerializeField]
+    private string GS_URL = "gs://YOUR_PROJECT.appspot.com/PATH_TO_ASSETS/";
+    [SerializeField]
+    private string FIRESTORE_URL = "firestore://";
 
     public bool IsSupportFormat(string url)
     {

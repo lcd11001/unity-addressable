@@ -1097,6 +1097,7 @@ MonoBehaviour:
   cubePosition: {x: 0, y: 3, z: 0}
   cubeRotationSpeed: 100
   sliderProgress: {fileID: 1094337519}
+  firestoreDownloader: {fileID: 11400000, guid: 518c7b6b7c6e6744eb1d652adde83819, type: 2}
 --- !u!4 &1579193824
 Transform:
   m_ObjectHideFlags: 0
