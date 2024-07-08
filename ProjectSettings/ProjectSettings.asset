@@ -840,7 +840,7 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Standalone: UPM_PACKAGE_VALIDATOR_CHECK_IS_COMPLETE
+    Standalone: UPM_PACKAGE_VALIDATOR_CHECK_IS_COMPLETE;ADDRESSABLE_DLC_FIREBASE
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

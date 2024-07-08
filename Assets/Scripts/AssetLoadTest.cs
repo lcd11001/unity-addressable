@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using DownloadContent;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
@@ -12,12 +13,34 @@ public class AssetLoadTest : MonoBehaviour
 
     private void Start()
     {
+#if ADDRESSABLE_FIREBASE_STORAGE
+        FirebaseAddressablesManager.FirebaseSetupFinished += OnDLCInitialized;
+#elif ADDRESSABLE_DLC
+        DownloadContentManager.OnInitialized += OnDLCInitialized;
+#elif ADDRESSABLE_DLC_FIREBASE
+        DownloadContentManager.OnInitialized += OnDLCInitialized;
+#else
+        OnDLCInitialized();
+#endif
+
+    }
+
+    private void OnDLCInitialized()
+    {
         // Load the asset multiple times
         Addressables.InitializeAsync().Completed += AssetLoadTest_Completed;
     }
 
     private void OnDestroy()
     {
+#if ADDRESSABLE_FIREBASE_STORAGE
+        FirebaseAddressablesManager.FirebaseSetupFinished -= OnDLCInitialized;
+#elif ADDRESSABLE_DLC
+        DownloadContentManager.OnInitialized -= OnDLCInitialized;
+#elif ADDRESSABLE_DLC_FIREBASE
+        DownloadContentManager.OnInitialized -= OnDLCInitialized;
+#endif
+
         if (addressableAssetKey.IsValid())
         {
             addressableAssetKey.ReleaseAsset();

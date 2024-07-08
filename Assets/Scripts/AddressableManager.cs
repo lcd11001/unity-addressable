@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using DownloadContent;
+using DownloadContent.Services;
 using RobinBird.FirebaseTools.Storage.Addressables;
 using UnityEditor;
 using UnityEngine;
@@ -79,14 +80,14 @@ public class AddressableManager : MonoBehaviour
             };
         });
         */
-#else
+#elif ADDRESSABLE_DLC
         DownloadContentManager.OnInitialized += InitAddressable;
         StartCoroutine(DownloadContentManager.InitializeCoroutine());
-        // InitAddressable();
-
-        // refCube.LoadAssetAsync<GameObject>().Completed += OnCubeLoaded;
-        // refLogo.LoadAssetAsync<Texture2D>().Completed += OnLogoLoaded;
-        // refClip.LoadAssetAsync<AudioClip>().Completed += OnClipLoaded;
+#elif ADDRESSABLE_DLC_FIREBASE
+        DownloadContentService.AddDownloadContentFetcher(new FirestoreDownloadContentModel());
+        DownloadContentManager.OnInitialized += InitAddressable;
+#else
+        InitAddressable();
 #endif
     }
 
@@ -383,6 +384,8 @@ public class AddressableManager : MonoBehaviour
         Debug.Log("Firebase initialized");
 #if ADDRESSABLE_FIREBASE_STORAGE
         FirebaseAddressablesManager.IsFirebaseSetupFinished = true;
+#elif ADDRESSABLE_DLC_FIREBASE
+        StartCoroutine(DownloadContentManager.InitializeCoroutine());
 #endif
     }
 
