@@ -35,9 +35,9 @@ MonoBehaviour:
   m_CheckForContentUpdateRestrictionsOption: 0
   m_MonoScriptBundleCustomNaming: 
   m_RemoteCatalogBuildPath:
-    m_Id: 68c4fa6cbfc2d3748afc778ebe856572
+    m_Id: afc29ccd30eaf384fa3ed209ba480789
   m_RemoteCatalogLoadPath:
-    m_Id: 648bfeed2ff250146bfbc47deda3c055
+    m_Id: 9821b46adcf52684fbe7f5997f1f0ed0
   m_ContentStateBuildPathProfileVariableName: <default settings path>
   m_CustomContentStateBuildPath: 
   m_ContentStateBuildPath: 
@@ -73,6 +73,10 @@ MonoBehaviour:
         m_Value: DLC/[BuildTarget]
       - m_Id: 648bfeed2ff250146bfbc47deda3c055
         m_Value: dlc://[BuildTarget]
+      - m_Id: afc29ccd30eaf384fa3ed209ba480789
+        m_Value: DLC_FIREBASE/[BuildTarget]
+      - m_Id: 9821b46adcf52684fbe7f5997f1f0ed0
+        m_Value: DLC_FIREBASE:///[BuildTarget]
     m_ProfileEntryNames:
     - m_Id: 974b7be8c4e558e45b1469308d7280ad
       m_Name: BuildTarget
@@ -94,6 +98,12 @@ MonoBehaviour:
       m_InlineUsage: 0
     - m_Id: 648bfeed2ff250146bfbc47deda3c055
       m_Name: DLC.LoadPath
+      m_InlineUsage: 0
+    - m_Id: afc29ccd30eaf384fa3ed209ba480789
+      m_Name: DLC Firebase Firestore.BuildPath
+      m_InlineUsage: 0
+    - m_Id: 9821b46adcf52684fbe7f5997f1f0ed0
+      m_Name: DLC Firebase Firestore.LoadPath
       m_InlineUsage: 0
     m_ProfileVersion: 1
   m_LabelTable:
