@@ -26,7 +26,7 @@ public class FirestoreDownloadContentModel : ScriptableObject, IDownloadContentF
         var storageRef = storage.GetReferenceFromUrl(url);
 
         // Fetch the download URL
-        storageRef.GetDownloadUrlAsync().ContinueWithOnMainThread(task =>
+        storageRef.GetDownloadUrlAsync().ContinueWith(task =>
         {
             if (task.IsFaulted || task.IsCanceled)
             {
