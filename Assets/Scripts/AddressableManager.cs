@@ -39,7 +39,6 @@ public class AddressableManager : DownloadContentViewBase
     [SerializeField]
     private Slider sliderProgress;
 
-    private Dictionary<string, float> downloadProgression = new Dictionary<string, float>();
     private Coroutine smothSlider = null;
 
     protected override void Start()
@@ -84,12 +83,12 @@ public class AddressableManager : DownloadContentViewBase
         DownloadContentModelBase.DownloadAsset<AudioClip>(refClip, OnClipLoaded);
         DownloadContentModelBase.DownloadAsset<GameObject>(refRotateCube, OnRotateCubeLoaded);
 
-        //StartCoroutine(TotalProgress());
+        StartCoroutine(DownloadProgress());
 
-        //AddressablesUtility.GetAddressFromAssetReference(refCube, (result) =>
-        //{
-        //    Debug.Log($"Address of refCube: {result}");
-        //});
+        AddressablesUtility.GetAddressFromAssetReference(refCube, (result) =>
+        {
+            Debug.Log($"Address of refCube: {result}");
+        });
     }
 
     public override void OnDownloadContentFailed(Exception exception)
@@ -99,30 +98,8 @@ public class AddressableManager : DownloadContentViewBase
 
     //private void Update()
     //{
-    //    if (downloadProgression.Count > 0)
-    //    {
-    //        Debug.Log($"Total progress: {CalculateTotalProgress()}");
-    //    }
+    //    Debug.Log($"Download progress: {DownloadContentModelBase.CurrentDownloadProgress}");
     //}
-
-    private float CalculateTotalProgress()
-    {
-        float totalProgress = 0.0f;
-        foreach (var item in downloadProgression)
-        {
-            totalProgress += item.Value;
-        }
-        return totalProgress / downloadProgression.Count;
-    }
-
-    private bool AllDownloadsCompleted()
-    {
-        foreach (var item in downloadProgression)
-        {
-            if (item.Value < 1.0f) return false;
-        }
-        return true;
-    }
 
     private void ShowSlider(float initValue = -1.0f)
     {
@@ -193,13 +170,13 @@ public class AddressableManager : DownloadContentViewBase
         sliderProgress.value = targetValue; // Ensure the target value is set
     }
 
-    private IEnumerator TotalProgress()
+    private IEnumerator DownloadProgress()
     {
         ShowSlider(0.0f);
 
-        while (!AllDownloadsCompleted())
+        while (!DownloadContentModelBase.AllDownloadsCompleted)
         {
-            float progress = CalculateTotalProgress();
+            float progress = DownloadContentModelBase.CurrentDownloadProgress;
             // Debug.Log($"Total progress: {progress}");
             UpdateSlider(progress);
 
@@ -214,25 +191,6 @@ public class AddressableManager : DownloadContentViewBase
 
         // Debug.Log("All downloads completed.");
         HideSlider(1.0f);
-    }
-
-
-    private IEnumerator DownloadStatus<T>(AsyncOperationHandle<T> handle)
-    {
-        if (downloadProgression.ContainsKey(handle.DebugName) == false)
-        {
-            downloadProgression.Add(handle.DebugName, 0.0f);
-        }
-
-        while (!handle.IsDone)
-        {
-            //Debug.Log($"{handle.DebugName}: {handle.PercentComplete}");
-            downloadProgression[handle.DebugName] = handle.PercentComplete;
-            yield return null;
-        }
-
-        downloadProgression[handle.DebugName] = 1.0f;
-        //Debug.Log($"{handle.DebugName} is downloaded completed.");
     }
 
     private void OnRotateCubeLoaded(GameObject prefabCube)

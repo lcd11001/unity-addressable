@@ -112,26 +112,50 @@ public abstract class DownloadContentModelBase : ScriptableObject, IDisposable
     #endregion
 
     #region Downloading Progress
-    public static float CurrentDownloadProgress()
+    public static bool IsDownloading
     {
-        float totalProgress = 0.0f;
-        foreach (var handle in downloadingOperations.Values)
+        get
         {
-            totalProgress += handle.PercentComplete;
+            return downloadingOperations.Count > 0;
         }
-        return totalProgress / downloadingOperations.Count;
     }
 
-    public static bool AllDownloadsCompleted()
+    public static float CurrentDownloadProgress
     {
-        foreach (var handle in downloadingOperations.Values)
+        get
         {
-            if (!handle.IsDone)
+            if (IsDownloading == false)
+            {
+                return 0f;
+            }
+
+            float totalProgress = 0.0f;
+            foreach (var handle in downloadingOperations.Values)
+            {
+                totalProgress += handle.PercentComplete;
+            }
+            return totalProgress / downloadingOperations.Count;
+        }
+    }
+
+    public static bool AllDownloadsCompleted
+    {
+        get
+        {
+            if (IsDownloading == false)
             {
                 return false;
             }
+
+            foreach (var handle in downloadingOperations.Values)
+            {
+                if (!handle.IsDone)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
-        return true;
     }
     #endregion
 }
