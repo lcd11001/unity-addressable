@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using DownloadContent;
 using DownloadContent.Services;
+using DownloadContent.Views;
 using RobinBird.FirebaseTools.Storage.Addressables;
 using UnityEditor;
 using UnityEngine;
@@ -12,7 +13,7 @@ using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 
-public class AddressableManager : MonoBehaviour
+public class AddressableManager : DownloadContentViewBase
 {
     [SerializeField]
     private AssetReferenceGameObject refCube;
@@ -38,62 +39,73 @@ public class AddressableManager : MonoBehaviour
     [SerializeField]
     private Slider sliderProgress;
 
-#if ADDRESSABLE_DLC_FIREBASE
-    [SerializeField]
-    private FirestoreDownloadContentModel firestoreDownloader;
-#endif
-
     private Dictionary<string, float> downloadProgression = new Dictionary<string, float>();
     private Coroutine smothSlider = null;
 
-    private void Start()
+    protected override void Start()
     {
+        base.Start();
+
         HideSlider();
         imageLogo.gameObject.SetActive(false);
 
         // For development purpose, clear cache
         Caching.ClearCache();
+    }
 
-#if ADDRESSABLE_FIREBASE_STORAGE
-        // Hook Firebase
-        Addressables.ResourceManager.ResourceProviders.Add(new FirebaseStorageAssetBundleProvider());
-        Addressables.ResourceManager.ResourceProviders.Add(new FirebaseStorageJsonAssetProvider());
-        Addressables.ResourceManager.ResourceProviders.Add(new FirebaseStorageHashProvider());
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
 
-        //Addressables.InternalIdTransformFunc += FirebaseAddressablesCache.IdTransformFunc;
-        Addressables.InternalIdTransformFunc += FirebaseAddressablesCacheExtensions.IdTransformFunc;
-        Addressables.WebRequestOverride += FirebaseAddressablesCacheExtensions.GetWebRequestFunc;
-
-        // Uncomment this line to see more logs
-        //FirebaseAddressablesManager.LogLevel = Firebase.LogLevel.Verbose;
-        FirebaseAddressablesManager.FirebaseSetupFinished += InitAddressable;
-
-        /*
-        FirebaseAddressablesCache.PreWarmDependencies(refCube.RuntimeKey, () =>
+        if (refCube.IsValid())
         {
-            var handler = Addressables.GetDownloadSizeAsync(refCube.RuntimeKey);
-            handler.Completed += (handle) =>
-            {
-                if (handle.Status == AsyncOperationStatus.Succeeded)
-                {
-                    Debug.Log($"Size of cube: {handle.Result}");
-                }
-                else
-                {
-                    Debug.LogError($"Failed to get size of cube: {handle.DebugName} due to {handle.OperationException}");
-                }
-            };
+            refCube.ReleaseAsset();
+        }
+        if (refLogo.IsValid())
+        {
+            refLogo.ReleaseAsset();
+        }
+        if (refClip.IsValid())
+        {
+            refClip.ReleaseAsset();
+        }
+        if (refRotateCube.IsValid())
+        {
+            refRotateCube.ReleaseAsset();
+        }
+    }
+
+    public override void OnDownloadContentSuccess()
+    {
+        Debug.Log("Addressables initialized successfully");
+
+        var handleCube = refCube.LoadAssetAsync<GameObject>();
+        handleCube.Completed += OnCubeLoaded;
+        StartCoroutine(DownloadStatus(handleCube));
+
+        var handleLogo = refLogo.LoadAssetAsync<Texture2D>();
+        handleLogo.Completed += OnLogoLoaded;
+        StartCoroutine(DownloadStatus(handleLogo));
+
+        var handleClip = refClip.LoadAssetAsync<AudioClip>();
+        handleClip.Completed += OnClipLoaded;
+        StartCoroutine(DownloadStatus(handleClip));
+
+        var handleRotateCube = refRotateCube.InstantiateAsync(cubePosition, Quaternion.identity);
+        handleRotateCube.Completed += OnRotateCubeLoaded;
+        StartCoroutine(DownloadStatus(handleRotateCube));
+
+        StartCoroutine(TotalProgress());
+
+        AddressablesUtility.GetAddressFromAssetReference(refCube, (result) =>
+        {
+            Debug.Log($"Address of refCube: {result}");
         });
-        */
-#elif ADDRESSABLE_DLC
-        DownloadContentManager.OnInitialized += InitAddressable;
-        StartCoroutine(DownloadContentManager.InitializeCoroutine());
-#elif ADDRESSABLE_DLC_FIREBASE
-        DownloadContentService.AddDownloadContentFetcher(firestoreDownloader);
-        DownloadContentManager.OnInitialized += InitAddressable;
-#else
-        InitAddressable();
-#endif
+    }
+
+    public override void OnDownloadContentFailed(Exception exception)
+    {
+        Debug.LogError(exception);
     }
 
     //private void Update()
@@ -234,41 +246,6 @@ public class AddressableManager : MonoBehaviour
         //Debug.Log($"{handle.DebugName} is downloaded completed.");
     }
 
-    private void OnAddressablesInitialized(AsyncOperationHandle<IResourceLocator> handle)
-    {
-        if (handle.Status == AsyncOperationStatus.Succeeded)
-        {
-            Debug.Log("Addressables initialized successfully");
-
-            var handleCube = refCube.LoadAssetAsync<GameObject>();
-            handleCube.Completed += OnCubeLoaded;
-            StartCoroutine(DownloadStatus(handleCube));
-
-            var handleLogo = refLogo.LoadAssetAsync<Texture2D>();
-            handleLogo.Completed += OnLogoLoaded;
-            StartCoroutine(DownloadStatus(handleLogo));
-
-            var handleClip = refClip.LoadAssetAsync<AudioClip>();
-            handleClip.Completed += OnClipLoaded;
-            StartCoroutine(DownloadStatus(handleClip));
-
-            var handleRotateCube = refRotateCube.InstantiateAsync(cubePosition, Quaternion.identity);
-            handleRotateCube.Completed += OnRotateCubeLoaded;
-            StartCoroutine(DownloadStatus(handleRotateCube));
-
-            StartCoroutine(TotalProgress());
-
-            AddressablesUtility.GetAddressFromAssetReference(refCube, (result) =>
-            {
-                Debug.Log($"Address of refCube: {result}");
-            });
-        }
-        else
-        {
-            Debug.LogError("Addressables failed to initialize");
-        }
-    }
-
     private void OnRotateCubeLoaded(AsyncOperationHandle<RotateCube> handle)
     {
         DebugHandle(handle);
@@ -291,25 +268,7 @@ public class AddressableManager : MonoBehaviour
         cube.SetSpeed(cubeRotationSpeed);
     }
 
-    private void OnDestroy()
-    {
-        if (refCube.IsValid())
-        {
-            refCube.ReleaseAsset();
-        }
-        if (refLogo.IsValid())
-        {
-            refLogo.ReleaseAsset();
-        }
-        if (refClip.IsValid())
-        {
-            refClip.ReleaseAsset();
-        }
-        if (refRotateCube.IsValid())
-        {
-            refRotateCube.ReleaseAsset();
-        }
-    }
+
 
     private static void DebugHandle<TObject>(AsyncOperationHandle<TObject> handle)
     {
@@ -382,20 +341,5 @@ public class AddressableManager : MonoBehaviour
             yield return null;
         }
         Instantiate(prefab);
-    }
-
-    public void OnFirebaseInitialized()
-    {
-        Debug.Log("Firebase initialized");
-#if ADDRESSABLE_FIREBASE_STORAGE
-        FirebaseAddressablesManager.IsFirebaseSetupFinished = true;
-#elif ADDRESSABLE_DLC_FIREBASE
-        StartCoroutine(DownloadContentManager.InitializeCoroutine());
-#endif
-    }
-
-    public void InitAddressable()
-    {
-        Addressables.InitializeAsync().Completed += OnAddressablesInitialized;
     }
 }
