@@ -12,7 +12,9 @@ public abstract class DownloadContentModelBase : ScriptableObject, IDisposable
         Debug.LogError("Don't forget to call UnloadDLC() to clear memory of all loaded assets");
     }
 
-    public static bool IsAssetLoaded<T>(AssetReferenceT<T> assetReference)
+    #region Download Content Methods
+
+    public static bool IsAssetLoaded<T>(AssetReference assetReference)
     where T : UnityEngine.Object
     {
         if (assetReference == null)
@@ -49,42 +51,87 @@ public abstract class DownloadContentModelBase : ScriptableObject, IDisposable
         return default(T);
     }
 
-    public static void UnloadDLC<T>(List<AssetReferenceT<T>> listAssetReference)
-    where T : UnityEngine.Object
+
+    public static void UnloadGroup(List<AssetReference> listAssetReference)
     {
-        foreach (AssetReferenceT<T> assetReference in listAssetReference)
+        foreach (AssetReference assetReference in listAssetReference)
         {
-            if (downloadingOperations.ContainsKey(assetReference.AssetGUID))
-            {
-                var handle = downloadingOperations[assetReference.AssetGUID];
-                if (handle.IsValid())
-                {
-                    Addressables.Release(handle);
-                }
-                downloadingOperations.Remove(assetReference.AssetGUID);
-            }
+            UnloadAsset(assetReference);
         }
     }
 
-    public static void DownloadDLC<T>(List<AssetReferenceT<T>> listAssetReference, Action<T> onDownloadedAsset)
+    public static void UnloadAsset(AssetReference assetReference)
+    {
+        if (downloadingOperations.ContainsKey(assetReference.AssetGUID))
+        {
+            var handle = downloadingOperations[assetReference.AssetGUID];
+            if (handle.IsValid())
+            {
+                Addressables.Release(handle);
+            }
+            downloadingOperations.Remove(assetReference.AssetGUID);
+        }
+    }
+
+    public static void DownloadGroup<T>(List<AssetReference> listAssetReference, Action<T> onDownloadedAsset)
     where T : UnityEngine.Object
     {
-        foreach (AssetReferenceT<T> assetReference in listAssetReference)
+        foreach (AssetReference assetReference in listAssetReference)
         {
-            var handle = Addressables.LoadAssetAsync<T>(assetReference);
-            handle.Completed += (obj) =>
+            DownloadAsset(assetReference, onDownloadedAsset);
+        }
+    }
+
+    public static void DownloadAsset<T>(AssetReference assetReference, Action<T> onDownloadedAsset)
+    where T : UnityEngine.Object
+    {
+        var handle = Addressables.LoadAssetAsync<T>(assetReference);
+        handle.Completed += (obj) =>
+        {
+            if (obj.Status == AsyncOperationStatus.Succeeded)
             {
-                if (obj.Status == AsyncOperationStatus.Succeeded)
-                {
-                    Debug.Log($"Downloaded [{typeof(T)}]: {obj.Result.name}");
-                    onDownloadedAsset?.Invoke(obj.Result);
-                }
-                else
-                {
-                    Debug.LogError($"Failed to download [{typeof(T)}]: error {obj.OperationException}");
-                }
-            };
+                Debug.Log($"Downloaded [{typeof(T)}]: {obj.Result.name}");
+                onDownloadedAsset?.Invoke(obj.Result);
+            }
+            else
+            {
+                Debug.LogError($"Failed to download [{typeof(T)}]: error {obj.OperationException}");
+            }
+        };
+
+        if (downloadingOperations.ContainsKey(assetReference.AssetGUID))
+        {
+            downloadingOperations[assetReference.AssetGUID] = handle;
+        }
+        else
+        {
             downloadingOperations.Add(assetReference.AssetGUID, handle);
         }
     }
+
+    #endregion
+
+    #region Downloading Progress
+    public static float CurrentDownloadProgress()
+    {
+        float totalProgress = 0.0f;
+        foreach (var handle in downloadingOperations.Values)
+        {
+            totalProgress += handle.PercentComplete;
+        }
+        return totalProgress / downloadingOperations.Count;
+    }
+
+    public static bool AllDownloadsCompleted()
+    {
+        foreach (var handle in downloadingOperations.Values)
+        {
+            if (!handle.IsDone)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    #endregion
 }

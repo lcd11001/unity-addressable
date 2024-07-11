@@ -79,28 +79,17 @@ public class AddressableManager : DownloadContentViewBase
     {
         Debug.Log("Addressables initialized successfully");
 
-        var handleCube = refCube.LoadAssetAsync<GameObject>();
-        handleCube.Completed += OnCubeLoaded;
-        StartCoroutine(DownloadStatus(handleCube));
+        DownloadContentModelBase.DownloadAsset<GameObject>(refCube, OnCubeLoaded);
+        DownloadContentModelBase.DownloadAsset<Texture2D>(refLogo, OnLogoLoaded);
+        DownloadContentModelBase.DownloadAsset<AudioClip>(refClip, OnClipLoaded);
+        DownloadContentModelBase.DownloadAsset<GameObject>(refRotateCube, OnRotateCubeLoaded);
 
-        var handleLogo = refLogo.LoadAssetAsync<Texture2D>();
-        handleLogo.Completed += OnLogoLoaded;
-        StartCoroutine(DownloadStatus(handleLogo));
+        //StartCoroutine(TotalProgress());
 
-        var handleClip = refClip.LoadAssetAsync<AudioClip>();
-        handleClip.Completed += OnClipLoaded;
-        StartCoroutine(DownloadStatus(handleClip));
-
-        var handleRotateCube = refRotateCube.InstantiateAsync(cubePosition, Quaternion.identity);
-        handleRotateCube.Completed += OnRotateCubeLoaded;
-        StartCoroutine(DownloadStatus(handleRotateCube));
-
-        StartCoroutine(TotalProgress());
-
-        AddressablesUtility.GetAddressFromAssetReference(refCube, (result) =>
-        {
-            Debug.Log($"Address of refCube: {result}");
-        });
+        //AddressablesUtility.GetAddressFromAssetReference(refCube, (result) =>
+        //{
+        //    Debug.Log($"Address of refCube: {result}");
+        //});
     }
 
     public override void OnDownloadContentFailed(Exception exception)
@@ -246,100 +235,33 @@ public class AddressableManager : DownloadContentViewBase
         //Debug.Log($"{handle.DebugName} is downloaded completed.");
     }
 
-    private void OnRotateCubeLoaded(AsyncOperationHandle<RotateCube> handle)
+    private void OnRotateCubeLoaded(GameObject prefabCube)
     {
-        DebugHandle(handle);
+        var go = Instantiate(prefabCube);
+        go.transform.position = cubePosition;
 
-        if (handle.Status == AsyncOperationStatus.Succeeded)
-        {
-            // handle.Result.SetSpeed(cubeRotationSpeed);
-            StartCoroutine(ShowRotateCube(handle.Result));
-        }
+        var rotateCube = go.GetComponent<RotateCube>();
+        rotateCube.SetSpeed(cubeRotationSpeed);
     }
 
-    private IEnumerator ShowRotateCube(RotateCube cube)
+    private void OnClipLoaded(AudioClip clip)
     {
-        cube.gameObject.SetActive(false);
-        while (AllDownloadsCompleted() == false)
-        {
-            yield return null;
-        }
-        cube.gameObject.SetActive(true);
-        cube.SetSpeed(cubeRotationSpeed);
-    }
-
-
-
-    private static void DebugHandle<TObject>(AsyncOperationHandle<TObject> handle)
-    {
-        Debug.Log($"{handle.DebugName} is loaded {handle.Status}");
-    }
-
-    private void OnClipLoaded(AsyncOperationHandle<AudioClip> handle)
-    {
-        DebugHandle(handle);
-        if (handle.Status == AsyncOperationStatus.Succeeded)
-        {
-            var go = new GameObject("Background Music");
-            var audio = go.AddComponent<AudioSource>();
-            audio.clip = handle.Result;
-            audio.loop = true;
-            audio.playOnAwake = false;
-
-            StartCoroutine(PlayMusic(audio));
-            // audio.Play();
-        }
-    }
-
-    private IEnumerator PlayMusic(AudioSource audio)
-    {
-        while (AllDownloadsCompleted() == false)
-        {
-            yield return null;
-        }
-        if (audio.clip.loadState == AudioDataLoadState.Loading)
-        {
-            yield return new WaitUntil(() => audio.clip.loadState == AudioDataLoadState.Loaded);
-        }
+        var go = new GameObject("Background Music");
+        var audio = go.AddComponent<AudioSource>();
+        audio.clip = clip;
+        audio.loop = true;
+        audio.playOnAwake = false;
         audio.Play();
     }
 
-    private void OnLogoLoaded(AsyncOperationHandle<Texture2D> handle)
+    private void OnLogoLoaded(Texture2D texture)
     {
-        DebugHandle(handle);
-        if (handle.Status == AsyncOperationStatus.Succeeded)
-        {
-            // imageLogo.texture = handle.Result;
-            StartCoroutine(ShowLogo(handle.Result));
-        }
-    }
-
-    private IEnumerator ShowLogo(Texture2D texture)
-    {
-        while (AllDownloadsCompleted() == false)
-        {
-            yield return null;
-        }
         imageLogo.texture = texture;
         imageLogo.gameObject.SetActive(true);
     }
 
-    private void OnCubeLoaded(AsyncOperationHandle<GameObject> handle)
+    private void OnCubeLoaded(GameObject prefab)
     {
-        DebugHandle(handle);
-        if (handle.Status == AsyncOperationStatus.Succeeded)
-        {
-            // Instantiate(handle.Result);
-            StartCoroutine(ShowCube(handle.Result));
-        }
-    }
-
-    private IEnumerator ShowCube(GameObject prefab)
-    {
-        while (AllDownloadsCompleted() == false)
-        {
-            yield return null;
-        }
         Instantiate(prefab);
     }
 }
