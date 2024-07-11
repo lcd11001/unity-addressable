@@ -1,10 +1,11 @@
+using DownloadContent.Services;
 using DownloadContent.Models;
 using Firebase.Extensions;
 using Firebase.Storage;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "FirestoreDownloadContentModel", menuName = "DLC/Content Downloaders/Firebase Firestore")]
-public class FirestoreDownloadContentModel : ScriptableObject, IDownloadContentFetcher
+[CreateAssetMenu(fileName = "FirestoreDownloadContentService", menuName = "DLC/Content Downloaders/Firebase Firestore")]
+public class FirestoreDownloadContentService : DownloadContentServiceBase
 {
     [Tooltip("Replace YOUR_PROJECT with your project id")]
     [SerializeField]
@@ -12,12 +13,26 @@ public class FirestoreDownloadContentModel : ScriptableObject, IDownloadContentF
     [SerializeField]
     private string FIRESTORE_URL = "firestore://";
 
-    public bool IsSupportFormat(string url)
+    override public void Initialize()
+    {
+        Firebase.FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.Exception != null)
+            {
+                Debug.LogError($"Failed to initialize Firebase with {task.Exception}");
+                return;
+            }
+
+            IsInitialized = true;
+        });
+    }
+
+    public override bool IsSupportFormat(string url)
     {
         return !string.IsNullOrEmpty(url) && url.StartsWith("firestore://");
     }
 
-    public void FetchUrl(string url, System.Action<string> onSuccess, System.Action<string> onError)
+    public override void FetchUrl(string url, System.Action<string> onSuccess, System.Action<string> onError)
     {
         url = url.Replace(FIRESTORE_URL, GS_URL);
         var storage = FirebaseStorage.DefaultInstance;
