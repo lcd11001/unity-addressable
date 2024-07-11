@@ -86,6 +86,13 @@ namespace DownloadContent.Providers
             asyncOperationHandle = provideHandle.ResourceManager.ProvideResource<IAssetBundleResource>(bundleLocation);
             bundleOperationHandlers.Add(url, asyncOperationHandle);
             asyncOperationHandle.Completed += (handle) => OnAssetBundleLoaded(handle, provideHandle);
+            asyncOperationHandle.Destroyed += (handle) => OnAssetBundleDestroyed(url);
+        }
+
+        private void OnAssetBundleDestroyed(string url)
+        {
+            Debug.Log($"clean up: {url}");
+            bundleOperationHandlers.Remove(url);
         }
 
         private void OnAssetBundleLoaded(AsyncOperationHandle<IAssetBundleResource> handle, ProvideHandle provideHandle)
@@ -105,17 +112,16 @@ namespace DownloadContent.Providers
         public override void Release(IResourceLocation location, object asset)
         {
             base.Release(location, asset);
-            var url = location.InternalId;
-            //var url = Addressables.ResourceManager.TransformInternalId(location);
-            Debug.Log($"Release: {url}");
+            //var url = location.InternalId;
+            var url = Addressables.ResourceManager.TransformInternalId(location);
             // We have to make sure that the actual Bundle Load operation for this asset also gets released together with the DLC asset
             if (bundleOperationHandlers.TryGetValue(url, out AsyncOperationHandle<IAssetBundleResource> operation))
             {
+                Debug.Log($"Release: {url}");
                 if (operation.IsValid())
                 {
                     Addressables.ResourceManager.Release(operation);
                 }
-                bundleOperationHandlers.Remove(url);
             }
         }
     }

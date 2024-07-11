@@ -31,6 +31,11 @@ namespace DownloadContent.Controllers
             originalDlcUrl[sanitizedUrl] = dlcUrl;
         }
 
+        public static void RemoveInteralId(string internalId)
+        {
+            internalIdToDlcUrl.Remove(internalId);
+        }
+
         public static void GetWebRequestFunc(UnityWebRequest request)
         {
             var originalUrl = GetOriginalDlcUrl(request.url);

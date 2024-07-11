@@ -24,11 +24,21 @@ namespace DownloadContent.Services
 
         public static void AddDownloadContentFetcher(IDownloadContentFetcher fetcher)
         {
+            Type type = GetLowestType(fetcher.GetType());
+            if (IsContainsType(downloadContentFetchers, type))
+            {
+                return;
+            }
             downloadContentFetchers.Add(fetcher);
         }
 
         public static void InsertDownloadContentFetcher(IDownloadContentFetcher fetcher, int index)
         {
+            Type type = GetLowestType(fetcher.GetType());
+            if (IsContainsType(downloadContentFetchers, type))
+            {
+                return;
+            }
             downloadContentFetchers.Insert(index, fetcher);
         }
 
@@ -245,12 +255,15 @@ namespace DownloadContent.Services
                     (dlcUrl) =>
                     {
                         Debug.Log($"Fetched DLC from {remoteUrl} => {dlcUrl}");
+                        // set for caching the dlc url
                         DownloadContentController.SetInternalIdToDlcUrl(remoteUrl, dlcUrl);
                         CheckAndProcessQueue(onComplete);
                     },
                     (error) =>
                     {
-                        Debug.LogError($"Error fetching DLC url: {remoteUrl}");
+                        Debug.LogError($"Error fetching DLC url: {remoteUrl} \nError Message: {error}");
+                        // clear the cache
+                        DownloadContentController.RemoveInteralId(remoteUrl);
                         CheckAndProcessQueue(onComplete);
                     }
                 );
@@ -260,6 +273,37 @@ namespace DownloadContent.Services
                 Debug.LogError($"No fetcher found for {remoteUrl}");
                 CheckAndProcessQueue(onComplete);
             }
+        }
+
+        #endregion
+
+        #region Utility
+        public static Type GetLowestType(Type type)
+        {
+            return GetTypeHierarchy(type).LastOrDefault();
+        }
+
+        private static Type[] GetTypeHierarchy(Type type)
+        {
+            var hierarchy = new System.Collections.Generic.List<Type>();
+
+            while (type != null)
+            {
+                hierarchy.Insert(0, type);  // Insert at the beginning to maintain order
+                type = type.BaseType;
+            }
+
+            return hierarchy.ToArray();
+        }
+
+        public static bool IsContainsType<T>(IList<T> list, Type type)
+        {
+            if (list.Any(f => GetLowestType(f.GetType()) == type))
+            {
+                Debug.LogWarning($"{type} already exists in list {nameof(list)}");
+                return true;
+            }
+            return false;
         }
 
         #endregion

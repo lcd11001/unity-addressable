@@ -1,5 +1,6 @@
 using DownloadContent.Controllers;
 using DownloadContent.Providers;
+using DownloadContent.Services;
 using DownloadContent.Views;
 using System;
 using System.Collections;
@@ -20,27 +21,33 @@ namespace DownloadContent
         protected static Func<IResourceLocation, string> InternalIdTransformFunc
         {
             get => Addressables.ResourceManager.InternalIdTransformFunc;
-            private set
-            {
-                Addressables.ResourceManager.InternalIdTransformFunc = value;
-            }
+            set => Addressables.ResourceManager.InternalIdTransformFunc = value;
         }
 
         protected static Action<UnityWebRequest> WebRequestOverride
         {
             get => Addressables.ResourceManager.WebRequestOverride;
-            private set
-            {
-                Addressables.ResourceManager.WebRequestOverride = value;
-            }
+            set => Addressables.ResourceManager.WebRequestOverride = value;
         }
 
         public static IEnumerator InitializeCoroutine()
         {
             // Hook default DLC
-            Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentAssetBundleProvider());
-            Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentJsonAssetProvider());
-            Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentHashProvider());
+            // Check if an instance of DLCAssetBundleProvider already exists
+            if (!DownloadContentService.IsContainsType(Addressables.ResourceManager.ResourceProviders, typeof(DownloadContentAssetBundleProvider)))
+            {
+                Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentAssetBundleProvider());
+            }
+            // Check if an instance of DLCJsonAssetProvider already exists
+            if (!DownloadContentService.IsContainsType(Addressables.ResourceManager.ResourceProviders, typeof(DownloadContentJsonAssetProvider)))
+            {
+                Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentJsonAssetProvider());
+            }
+            // Check if an instance of DLCHashProvider already exists
+            if (!DownloadContentService.IsContainsType(Addressables.ResourceManager.ResourceProviders, typeof(DownloadContentHashProvider)))
+            {
+                Addressables.ResourceManager.ResourceProviders.Add(new DownloadContentHashProvider());
+            }
 
             yield return InitializeCoroutine(DownloadContentController.IdTransformFunc, DownloadContentController.GetWebRequestFunc);
         }
@@ -49,6 +56,7 @@ namespace DownloadContent
         {
             if (_isInitialized)
             {
+                OnInitialized?.Invoke();
                 yield break;
             }
 
