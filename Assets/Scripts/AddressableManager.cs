@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using DownloadContent;
+using DownloadContent.Models;
 using DownloadContent.Services;
 using DownloadContent.Views;
 using RobinBird.FirebaseTools.Storage.Addressables;

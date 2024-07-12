@@ -13,16 +13,7 @@ public class AssetLoadTest : MonoBehaviour
 
     private void Start()
     {
-#if ADDRESSABLE_FIREBASE_STORAGE
-        FirebaseAddressablesManager.FirebaseSetupFinished += OnDLCInitialized;
-#elif ADDRESSABLE_DLC
         DownloadContentManager.OnInitialized += OnDLCInitialized;
-#elif ADDRESSABLE_DLC_FIREBASE
-        DownloadContentManager.OnInitialized += OnDLCInitialized;
-#else
-        OnDLCInitialized();
-#endif
-
     }
 
     private void OnDLCInitialized()
@@ -33,14 +24,7 @@ public class AssetLoadTest : MonoBehaviour
 
     private void OnDestroy()
     {
-#if ADDRESSABLE_FIREBASE_STORAGE
-        FirebaseAddressablesManager.FirebaseSetupFinished -= OnDLCInitialized;
-#elif ADDRESSABLE_DLC
         DownloadContentManager.OnInitialized -= OnDLCInitialized;
-#elif ADDRESSABLE_DLC_FIREBASE
-        DownloadContentManager.OnInitialized -= OnDLCInitialized;
-#endif
-
         if (addressableAssetKey.IsValid())
         {
             addressableAssetKey.ReleaseAsset();
