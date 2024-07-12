@@ -6,12 +6,6 @@ using UnityEngine;
 
 namespace DownloadContent.Models
 {
-    public interface IDownloadContentFetcher
-    {
-        bool IsSupportFormat(string url);
-        void FetchUrl(string url, Action<string> onSuccess, Action<string> onError);
-    }
-
     public class DefaultDownloadContentModel : IDownloadContentFetcher
     {
         const string DLC_URL_START = "dlc://";
