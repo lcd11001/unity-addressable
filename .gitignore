@@ -74,3 +74,5 @@ Assets/Plugins/Android/FirebaseApp.androidlib/res/values/google-services.xml
 Assets/Samples/
 DLC/
 DLC_FIREBASE/
+Assets/GeneratedLocalRepo.meta
+Assets/GeneratedLocalRepo/
